@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  # UpConsent React App + API
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"  # Frontend static server
+      - "8019:8019"  # API server
+    volumes:
+      - ./.env.local:/app/.env:ro  # Mount local .env file (read-only)
+      - ./firebase-admin-key.json:/app/firebase-admin-key.json:ro
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
+    container_name: consent-react-local
+    restart: unless-stopped
+    environment:
+      # Override to use local Firebase emulator
+      - FIRESTORE_EMULATOR_HOST=firebase-emulator:8080
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+      - EXTERNAL_API_BASE_URL=http://negotiation-api-local:8001/negotiation-api
+    depends_on:
+      - firebase-emulator
+    networks:
+      - upconsent-local
+      - cactus-crm_sail  # Connect to CRM network for integration
+
+  # Firebase Emulator for local development
+  firebase-emulator:
+    image: node:18
+    container_name: firebase-emulator-local
+    working_dir: /app
+    ports:
+      - "4000:4000"   # Emulator Suite UI
+      - "8080:8080"   # Firestore Emulator
+      - "9099:9099"   # Auth Emulator
+      - "9199:9199"   # Storage Emulator
+    volumes:
+      - ./firebase.json:/app/firebase.json:ro
+      - ./firestore.rules:/app/firestore.rules:ro
+      - ./firestore.indexes.json:/app/firestore.indexes.json:ro
+      - firebase-emulator-data:/app/.firebase
+    command: >
+      sh -c "apt-get update && apt-get install -y openjdk-17-jre-headless &&
+             npm install -g firebase-tools &&
+             firebase emulators:start --only firestore,auth,storage --project demo-project"
+    restart: unless-stopped
+    networks:
+      - upconsent-local
+
+networks:
+  upconsent-local:
+    driver: bridge
+  cactus-crm_sail:
+    external: true  # Use existing CRM network
+
+volumes:
+  firebase-emulator-data:

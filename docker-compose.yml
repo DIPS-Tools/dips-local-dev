@@ -1,0 +1,329 @@
+version: '3.8'
+
+services:
+  # Firebase Emulator for local development
+  # Enable/disable with USE_EMULATOR env var (default: true)
+  # Note: To disable, comment out this entire service or set profiles
+  firebase-emulator:
+    build:
+      context: ./emulator
+      dockerfile: Dockerfile.emulator
+    container_name: firebase-emulator-local
+    working_dir: /app
+    ports:
+      - "4000:4000"   # Emulator Suite UI
+      - "4400:4400"   # Emulator Hub
+      - "4500:4500"   # Reserved port
+      - "8080:8080"   # Firestore Emulator
+      - "9099:9099"   # Auth Emulator
+      - "9150:9150"   # Firestore UI WebSocket
+      - "9199:9199"   # Storage Emulator
+    volumes:
+      - ./emulator/firebase.json:/app/firebase.json:ro
+      - ./upconsent/.firebaserc:/app/.firebaserc:ro
+      - ./emulator/firestore.rules:/app/firestore.rules:ro
+      - ./emulator/firestore.indexes.json:/app/firestore.indexes.json:ro
+      - ./emulator/storage.rules:/app/storage.rules:ro
+      - firebase-emulator-data:/app/.firebase
+      - firebase-emulator-cache:/root/.cache/firebase/emulators
+    command: firebase emulators:start --only firestore,auth,storage --project upconsent --import=/app/.firebase/data --export-on-exit=/app/.firebase/data
+    restart: unless-stopped
+    networks:
+      - upcast-local
+
+  # UpConsent React App + API
+  consent-app:
+    build:
+      context: ./upconsent
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://10.22.38.111:8019/api
+        VITE_NEGOTIATION_BASE_URL: http://10.22.38.111:8001/negotiation/organization/negotiation
+        VITE_FIRESTORE_EMULATOR_HOST: 10.22.38.111
+        VITE_FIRESTORE_EMULATOR_PORT: 8080
+        VITE_AUTH_EMULATOR_HOST: 10.22.38.111
+        VITE_AUTH_EMULATOR_PORT: 9099
+        VITE_STORAGE_EMULATOR_HOST: 10.22.38.111
+        VITE_STORAGE_EMULATOR_PORT: 9199
+    ports:
+      - "5173:5173"  # Frontend static server
+      - "8019:8019"  # API server
+      - "9229:9229"  # Node inspector for debugging
+    volumes:
+      - ./upconsent/.env:/app/.env:ro
+      - ./upconsent/firebase-admin-key.json:/app/firebase-admin-key.json:ro
+      - ./emulator/firebase-admin-key.local.json:/app/firebase-admin-key.local.json:ro
+      - ./emulator/firebase-credentials.json:/app/firebase-credentials.json:ro
+      # Mount source code for hot reload
+      - ./upconsent/src:/app/src
+      - ./upconsent/server:/app/server
+    container_name: consent-react-local
+    restart: unless-stopped
+    environment:
+      # Emulator configuration (default: true for local dev)
+      - USE_EMULATOR=${USE_EMULATOR:-true}
+      - VITE_USE_EMULATOR=${USE_EMULATOR:-true}
+      - VITE_FIRESTORE_EMULATOR_HOST=10.22.38.111
+      - VITE_FIRESTORE_EMULATOR_PORT=8080
+      - VITE_AUTH_EMULATOR_HOST=10.22.38.111
+      - VITE_AUTH_EMULATOR_PORT=9099
+      - VITE_STORAGE_EMULATOR_HOST=10.22.38.111
+      - VITE_STORAGE_EMULATOR_PORT=9199
+      # External APIs
+      - VITE_NEGOTIATION_BASE_URL=http://10.22.38.111:8001/negotiation/organization/negotiation
+      - EXTERNAL_API_BASE_URL=http://10.22.38.111:8002/negotiation-api
+      - CONTRACT_SERVICE_URL=http://contract-service:8866
+      # Emulator hosts (only used when USE_EMULATOR=true)
+      - EMULATOR_FIRESTORE_HOST=firebase-emulator:8080
+      - EMULATOR_AUTH_HOST=firebase-emulator:9099
+      - EMULATOR_STORAGE_HOST=firebase-emulator:9199
+    depends_on:
+      - firebase-emulator
+    networks:
+      - upcast-local
+    command: ["sh", "-c", "NODE_OPTIONS='--inspect=0.0.0.0:9229 --enable-source-maps' npm run server & npm run serve-static"]
+
+  # Negotiation Plugin - Django Web Interface
+  negotiation-web:
+    build:
+      context: ./negotiation-plugin
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+      - "5679:5679"  # debugpy port for Django Web
+    volumes:
+      - ./negotiation-plugin:/app
+      - /app/venv
+    environment:
+      - DJANGO_BASE_URL=http://negotiation-web:8000/
+      - PYTHONPATH=/app
+      - MONGO_USER=root
+      - MONGO_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - API_BASE_URL=http://negotiation-api:8001/negotiation-api
+      - API_CONTRACT_SERVICE_URL=http://contract-service:8866
+      - SECRET_KEY=bqf)edmc)0=&x&5a+b*72-d2som_6hi7u1v_*+ys78vn6yq!4d
+    depends_on:
+      - mongo
+    container_name: negotiation-web-local
+    restart: unless-stopped
+    networks:
+      - upcast-local
+    command: python -m debugpy --listen 0.0.0.0:5679 manage.py runserver 0.0.0.0:8000
+
+  # Negotiation Plugin - Secure API (FastAPI)
+  negotiation-api:
+    build:
+      context: ./negotiation-plugin
+      dockerfile: Dockerfile.api
+    ports:
+      - "8002:8001"
+      - "5678:5678"  # debugpy port for Negotiation API
+    volumes:
+      - ./negotiation-plugin:/app
+    environment:
+      - MONGO_USER=root
+      - MONGO_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_SECURITY_PROTOCOL=PLAINTEXT
+      - MASTER_PASSWORD=master_password
+      - API_BASE_URL=http://negotiation-api:8001/negotiation-api
+      - API_CONTRACT_SERVICE_URL=http://contract-service:8866
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_AGENT_MODEL=${OPENAI_AGENT_MODEL:-gpt-4o-mini}
+    depends_on:
+      - mongo
+      - kafka
+    container_name: negotiation-api-local
+    restart: unless-stopped
+    networks:
+      - upcast-local
+     #command: python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m uvicorn negotiation_secure_api:app --host 0.0.0.0 --port 8001
+    command: python -m debugpy --listen 0.0.0.0:5678 -m uvicorn negotiation_secure_api:app --host 0.0.0.0 --port 8001
+
+  # Negotiation Plugin - Legacy API v1
+  negotiation-api-v1:
+    build:
+      context: ./negotiation-plugin
+      dockerfile: Dockerfile.api
+    ports:
+      - "8007:8001"
+    volumes:
+      - ./negotiation-plugin:/app
+    environment:
+      - MONGO_USER=root
+      - MONGO_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
+      - MONGO_HOST=mongo-v1
+      - MONGO_PORT=27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_SECURITY_PROTOCOL=PLAINTEXT
+      - MASTER_PASSWORD=master_password
+    depends_on:
+      - mongo-v1
+      - kafka
+    container_name: negotiation-api-v1-local
+    restart: unless-stopped
+    networks:
+      - upcast-local
+    command: python negotiationapi_v1.py
+
+  # Contract Service - FastAPI for contract creation and management
+  contract-service:
+    build:
+      context: ./contract-service
+      dockerfile: Dockerfile
+    ports:
+      - "8866:8866"
+    volumes:
+      - ./contract-service:/app
+    environment:
+      - MONGO_USER=root
+      - MONGO_PASSWORD=12345678
+      - MONGO_HOST=mongo-contracts
+      - MONGO_PORT=27017
+      - MONGO_DB=contractdb
+      - MONGO_AUTH_SOURCE=admin
+      - API_CONTRACT_SERVICE_URL=http://contract-service:8866
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_NAME=gpt-4o-mini
+    depends_on:
+      - mongo-contracts
+    container_name: contract-service-local
+    restart: unless-stopped
+    networks:
+      - upcast-local
+
+  # Authentication Service - FastAPI for auth and user management
+  authentication-service:
+    build:
+      context: ./authentication-service
+      dockerfile: Dockerfile
+    ports:
+      - "8899:8899"
+    volumes:
+      - ./authentication-service:/app
+    environment:
+      - MONGO_USER=root
+      - MONGO_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MASTER_PASSWORD=master_password
+      - SECRET_KEY=bqf)edmc)0=&x&5a+b*72-d2som_6hi7u1v_*+ys78vn6yq!4d
+    depends_on:
+      - mongo
+    container_name: authentication-service-local
+    restart: unless-stopped
+    networks:
+      - upcast-local
+
+  # MongoDB for Contract Service
+  mongo-contracts:
+    image: mongo:7.0
+    container_name: mongo-contracts-local
+    ports:
+      - "27019:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=12345678
+    volumes:
+      - mongo-contracts-data:/data/db
+    restart: unless-stopped
+    networks:
+      - upcast-local
+    command: ["--auth"]
+
+  # MongoDB for Negotiation Plugin
+  mongo:
+    image: mongo:8.0
+    container_name: mongo-local
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks:
+      - upcast-local
+    command: ["--auth"]
+
+  # Mongo Express - Web UI for MongoDB
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express-local
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
+      - ME_CONFIG_MONGODB_URL=mongodb://root:gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp@mongo:27017/
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin123
+    depends_on:
+      - mongo
+    restart: unless-stopped
+    networks:
+      - upcast-local
+
+  # MongoDB for Legacy API v1
+  mongo-v1:
+    image: mongo:6.0
+    container_name: mongo-v1-local
+    ports:
+      - "27020:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
+    volumes:
+      - mongo-v1-data:/data/db
+    restart: unless-stopped
+    networks:
+      - upcast-local
+    command: ["--auth"]
+
+  # Kafka for event streaming
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka-local
+    ports:
+      - "9093:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    restart: unless-stopped
+    networks:
+      - upcast-local
+
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper-local
+    ports:
+      - "2182:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: unless-stopped
+    networks:
+      - upcast-local
+
+networks:
+  upcast-local:
+    name: upcast-local
+    driver: bridge
+
+volumes:
+  mongo-data:
+  mongo-v1-data:
+  mongo-contracts-data:
+  firebase-emulator-data:
+  firebase-emulator-cache:
