@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Firebase Emulator for local development
   # Enable/disable with USE_EMULATOR env var (default: true)
@@ -20,7 +18,7 @@ services:
       - "9199:9199"   # Storage Emulator
     volumes:
       - ./emulator/firebase.json:/app/firebase.json:ro
-      - ./upconsent/.firebaserc:/app/.firebaserc:ro
+      - ./Consent-Manager/.firebaserc:/app/.firebaserc:ro
       - ./emulator/firestore.rules:/app/firestore.rules:ro
       - ./emulator/firestore.indexes.json:/app/firestore.indexes.json:ro
       - ./emulator/storage.rules:/app/storage.rules:ro
@@ -34,7 +32,7 @@ services:
   # UpConsent React App + API
   consent-app:
     build:
-      context: ./upconsent
+      context: ./Consent-Manager
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: http://10.22.38.111:8019/api
@@ -50,13 +48,13 @@ services:
       - "8019:8019"  # API server
       - "9229:9229"  # Node inspector for debugging
     volumes:
-      - ./upconsent/.env:/app/.env:ro
-      - ./upconsent/firebase-admin-key.json:/app/firebase-admin-key.json:ro
+      - ./Consent-Manager/.env:/app/.env:ro
+      - ./Consent-Manager/firebase-admin-key.json:/app/firebase-admin-key.json:ro
       - ./emulator/firebase-admin-key.local.json:/app/firebase-admin-key.local.json:ro
       - ./emulator/firebase-credentials.json:/app/firebase-credentials.json:ro
       # Mount source code for hot reload
-      - ./upconsent/src:/app/src
-      - ./upconsent/server:/app/server
+      - ./Consent-Manager/src:/app/src
+      - ./Consent-Manager/server:/app/server
     container_name: consent-react-local
     restart: unless-stopped
     environment:
@@ -86,13 +84,13 @@ services:
   # Negotiation Plugin - Django Web Interface
   negotiation-web:
     build:
-      context: ./negotiation-plugin
+      context: ./Negotiation-Manager
       dockerfile: Dockerfile
     ports:
       - "8001:8000"
       - "5679:5679"  # debugpy port for Django Web
     volumes:
-      - ./negotiation-plugin:/app
+      - ./Negotiation-Manager:/app
       - /app/venv
     environment:
       - DJANGO_BASE_URL=http://negotiation-web:8000/
@@ -115,13 +113,13 @@ services:
   # Negotiation Plugin - Secure API (FastAPI)
   negotiation-api:
     build:
-      context: ./negotiation-plugin
+      context: ./Negotiation-Manager
       dockerfile: Dockerfile.api
     ports:
       - "8002:8001"
       - "5678:5678"  # debugpy port for Negotiation API
     volumes:
-      - ./negotiation-plugin:/app
+      - ./Negotiation-Manager:/app
     environment:
       - MONGO_USER=root
       - MONGO_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
@@ -147,12 +145,12 @@ services:
   # Negotiation Plugin - Legacy API v1
   negotiation-api-v1:
     build:
-      context: ./negotiation-plugin
+      context: ./Negotiation-Manager
       dockerfile: Dockerfile.api
     ports:
       - "8007:8001"
     volumes:
-      - ./negotiation-plugin:/app
+      - ./Negotiation-Manager:/app
     environment:
       - MONGO_USER=root
       - MONGO_PASSWORD=gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp
@@ -173,12 +171,12 @@ services:
   # Contract Service - FastAPI for contract creation and management
   contract-service:
     build:
-      context: ./contract-service
+      context: ./Contract-Service
       dockerfile: Dockerfile
     ports:
       - "8866:8866"
     volumes:
-      - ./contract-service:/app
+      - ./Contract-Service:/app
     environment:
       - MONGO_USER=root
       - MONGO_PASSWORD=12345678
