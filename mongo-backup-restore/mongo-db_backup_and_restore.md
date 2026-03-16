@@ -33,7 +33,7 @@ docker cp dd68b4ae0554:./mongo_backup_contract.archive ./mongo_backup_contract.a
 
 ## 3. Import to Another Machine
 
-### 3.1 For `negotiation-plugin`
+### 3.1 For `Negotiation-Manager`
 
 Go into the container and create a folder:
 
@@ -65,7 +65,7 @@ docker cp mongo-backup-restore/mongo_backup_contract.archive 3030c6b10d52:./dump
 
 ## 4. Restore
 
-### 4.1 Restore `negotiation-plugin`
+### 4.1 Restore `Negotiation-Manager`
 
 ```bash
 docker exec -t ea869deca3f1 mongorestore \
