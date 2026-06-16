@@ -2,11 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/Consent-Manager" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/Contract-Service" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/Negotiation-Manager" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/Negotiation-Manager/PolicyEngine" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/PolicyEngine" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/authentication-service" vcs="Git" />
   </component>
 </project>

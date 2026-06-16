@@ -16,7 +16,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/Negotiation-Manager" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.11.13 (sftp://mh1f25@uos-24012.ecs.soton.ac.uk:22/home/mh1f25/python_env/negotiation_plugin_env_py311/bin/python3.11)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">
