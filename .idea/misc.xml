@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="Black">
-    <option name="sdkName" value="Python 3.9" />
-  </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.11.13 (sftp://mh1f25@uos-24012.ecs.soton.ac.uk:22/home/mh1f25/python_env/negotiation_plugin_env_py311/bin/python3.11)" project-jdk-type="Python SDK" />
-</project>
