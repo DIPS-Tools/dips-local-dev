@@ -173,12 +173,14 @@ On the consumer side, Find the **Request New Dataset** area.
 
 3. Ensure that the JSON file contains a valid `dcat:contactPoint` field.
 
-   The value of `dcat:contactPoint` must identify the provider's organisation. This information is used by the system to associate the request with the correct provider.
+   The value of `dcat:contactPoint` can be the provider's organisation or email address. This information is used by the system to associate the request with the correct provider.
 
    For example:
 
    ```
      "dcat:contactPoint": "JOT"
+     OR
+     "dcat:contactPoint": "some-provider@example.com"
    ```
 
    The exact structure must follow the schema expected by the Negotiation Tool.
