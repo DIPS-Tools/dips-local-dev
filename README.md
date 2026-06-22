@@ -79,14 +79,30 @@ Once the stack is running:
 
 1. Open `http://localhost:8001/negotiation/`.
 2. Register users through the UI or API.
-3. If you want to simulate negotiation between two parties, create one consumer account and one provider account.
-4. Log in.
-5. Create an offer from the provider side using the API (see an example as follows).
-6. Submit a request from the consumer side through the UI or API.
-7. Review and exchange counter-offers as needed.
-8. Accept the final offer.
-9. Complete the provider agreement step.
-10. Sign the negotiation from both sides to finalise it.
+3. To simulate a negotiation between two parties, create:
+   * one **consumer** account; and
+   * one **provider** account.
+4. Log in using one of the registered accounts.
+5. If the following error occurs during login:
+   ```text
+   sqlite3.OperationalError: no such table: django_session
+   ```
+   execute these commands in order:
+   ```bash
+   docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
+   docker compose exec negotiation-web python manage.py migrate
+   ```
+   Then restart the `negotiation-web` service if necessary:
+   ```bash
+   docker compose restart negotiation-web
+   ```
+6. Create an offer from the provider side using the API. See the example below.
+7. Submit a request from the consumer side through the UI or API.
+8. Review the offer and exchange counter-offers as needed.
+9. Accept the final offer.
+10. Complete the provider agreement step.
+11. Sign the negotiation from both the provider and consumer sides to finalise the negotiation.
+
 
 The finalised negotiation should then appear in the finalised negotiations table and be available for download.
 
