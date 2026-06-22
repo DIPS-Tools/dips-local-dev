@@ -156,6 +156,38 @@ Call the provider endpoint `/provider/offer/new` with a request body similar to 
 
 After the offer is created, the consumer can view the available offer and make a request (by clicking the 'Create Request' button through the UI) to the provider.
 
+## Example: Create a Request through the GUI
+
+On the consumer side, Find the **Request New Dataset** area.
+
+1. Click **Choose file**.
+
+2. Select a JSON file, such as:
+
+   ```text
+   data_file_initialize_offer.json
+   ```
+<img width="1555" height="291" alt="image" src="https://github.com/user-attachments/assets/ab4eb078-99ad-4266-9a7b-812857b217a2" />
+
+
+
+3. Ensure that the JSON file contains a valid `dcat:contactPoint` field.
+
+   The value of `dcat:contactPoint` must identify the provider's organisation. This information is used by the system to associate the request with the correct provider.
+
+   For example:
+
+   ```
+     "dcat:contactPoint": "JOT"
+   ```
+
+   The exact structure must follow the schema expected by the Negotiation Tool.
+
+4. Click **Create Request**.
+
+After the request has been created, the provider can review it and respond with an offer or counter-offer.
+
+
 ## Consent Manager
 
 The Consent Manager uses the local emulator and supporting scripts in this repository. Add project-specific operational notes here; this will be updated soon.
