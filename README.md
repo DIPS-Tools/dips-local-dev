@@ -185,7 +185,7 @@ On the consumer side, Find the **Request New Dataset** area.
 
 4. Click **Create Request**.
 
-After the request has been created, the provider can review it and respond with an offer or counter-offer.
+You can review the offer and respond it with a request.
 
 
 ## Consent Manager
