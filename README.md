@@ -81,7 +81,7 @@ Expected local directories include:
 
 	(b) For User Login, click on "Get Started" button => Login.
 
-6.  If you get "Invalid HTTP_HOST header: ... You may need to add 'ip_address' to ALLOWED_HOSTS ALLOWED_HOSTS" error while browsing.
+6.  If you get "Invalid HTTP_HOST header: ... You may need to add 'ip_address' to ALLOWED_HOSTS" error while browsing.
 
 	(a) Modify  Negotiation-Tool/privux/settings.py
 
