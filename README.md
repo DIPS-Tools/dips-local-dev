@@ -102,30 +102,6 @@ Expected local directories include:
 	```bash
 	docker compose config
 	```
- 
-## Environment Configuration
-
-Create or update the root `.env` file before starting the stack.
-
-Review the example values and update them for your machine, especially:
-
-- `HOST_ADDR`
-- `MONGO_PASSWORD`
-- `OPENAI_API_KEY`, if required by the services you plan to run
-
-## Start the Environment
-
-Build and start all configured services:
-
-```bash
-docker compose up -d --build
-```
-
-To inspect the resolved configuration:
-
-```bash
-docker compose config
-```
 
 ## Using the Negotiation Tool
 
