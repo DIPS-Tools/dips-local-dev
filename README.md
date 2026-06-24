@@ -69,10 +69,12 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 
 	ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
 
-4. Comment consent-app block (Line 32-83) in the docker-compose.yml file to build without Consent-Manager.
-	
-	sudo docker compose up -d --build
+4. Comment consent-app block (Line 32-83) in the docker-compose.yml file to build without Consent-Manager. Run the below command to build and start the environemtn.
 
+	```bash
+	sudo docker compose up -d --build
+	```
+ 
 5. Browse http://localhost:8001/negotiation/
 
 	(a) For User Registration, click on "Get Started" button => Register.
