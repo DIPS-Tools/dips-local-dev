@@ -82,10 +82,12 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 7.  If you get "Invalid HTTP_HOST header: ... You may need to add 'ip_address' to ALLOWED_HOSTS ALLOWED_HOSTS" error while browsing.
 
 	(a) Modify  Negotiation-Tool/privux/settings.py
+
 		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]   # Need to add IP address
+
 	(b) sudo docker restart negotiation-web-local
 
-8. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
+9. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
 
 	sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
 	sudo docker compose exec negotiation-web python manage.py migrate
