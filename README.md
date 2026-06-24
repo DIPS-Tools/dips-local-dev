@@ -46,7 +46,6 @@ git clone git@github.com:DATAPACT/Negotiation-Tool.git
 git clone git@github.com:DATAPACT/User-Management.git
 git clone git@github.com:DATAPACT/Contract_Service.git
 git clone git@github.com:DATAPACT/Policy-Editor.git
-git clone git@github.com:DATAPACT/Consent-Manager.git
 ```
 
 ## Environment Configuration
