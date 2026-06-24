@@ -59,8 +59,8 @@ Expected local directories include:
 	
 		# Keycloak settings (Update these values ACCORDING TO YOUR KEYCLOAK SETTINGS)
 		REALMS_NAME=<keycloak_realm_name>
-		KEYCLOAK_ADMIN_USERNAME=admin
-		KEYCLOAK_ADMIN_PASSWORD=123456
+		KEYCLOAK_ADMIN_USERNAME=<admin_user>
+		KEYCLOAK_ADMIN_PASSWORD=<admin_password>
 		
 		# MongoDB Settings
 		MONGO_PASSWORD=<set_a_password>  # a new password to be used for MongoDB
