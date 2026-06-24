@@ -65,11 +65,11 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 	# MongoDB Settings
 	MONGO_PASSWORD=<set_a_password>  # a new password to be used for MongoDB
 
-(b) Modify  Negotiation-Tool/privux/settings.py
+(b) Modify  Negotiation-Tool/privux/settings.py to add YOUR_MACHINE_IP_ADDR to ALLOWED_HOSTS.
 
 	ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
 
-4. Comment consent-app block (Line 32-83) in the docker-compose.yml file to build without Consent-Manager. Run the below command to build and start the environemtn.
+4. Comment consent-app block (Line 32-83) in the docker-compose.yml file to build without Consent-Manager. Run the below command to build and start the environment.
 
 	```bash
 	sudo docker compose up -d --build
