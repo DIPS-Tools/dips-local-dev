@@ -195,7 +195,7 @@ On the consumer side, Find the **Request New Dataset** area.
 2. Select a JSON file, such as:
 
    ```text
-   data_file_initialize_offer.json
+   data_file_initialize_offer.json (Download link:  https://github.com/DIPS-Tools/dips-local-dev/blob/main/data_file_initialize_offer.json)
    ```
 <img width="1555" height="291" alt="image" src="https://github.com/user-attachments/assets/ab4eb078-99ad-4266-9a7b-812857b217a2" />
 
