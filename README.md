@@ -89,16 +89,20 @@ Expected local directories include:
 
 	(b) restart negotiation-web-local
 
-		sudo docker restart negotiation-web-local
- 		
+		sudo docker restart negotiation-web-local	
 
-8. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
+7. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
 
 	```bash
- 	sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
-	sudo docker compose exec negotiation-web python manage.py migrate
- 	```
+	sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
+ 	sudo docker compose exec negotiation-web python manage.py migrate
+	```
 
+8. To inspect the resolved configuration:
+	```bash
+	docker compose config
+	```
+ 
 ## Environment Configuration
 
 Create or update the root `.env` file before starting the stack.
