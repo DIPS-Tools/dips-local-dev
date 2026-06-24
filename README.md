@@ -69,7 +69,9 @@ Expected local directories include:
 		
 		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
 
-4. Comment consent-app block (Line 32-83) in the docker-compose.yml file to build without Consent-Manager. Run the below command to build and start the environment.
+4. Run the below command to build and start the environment.
+	To build the environment without the Consent Manager, comment out the `consent-app` section in the `docker-compose.yml` file (lines 32–83). The Consent Manager is still under development and is not yet ready for use.
+
 
 	```bash
 	sudo docker compose up -d --build
