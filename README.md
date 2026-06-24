@@ -89,9 +89,8 @@ Expected local directories include:
 
 	(b) restart negotiation-web-local
 
-		```bash
- 		sudo docker restart negotiation-web-local
- 		```
+		sudo docker restart negotiation-web-local
+ 		
 
 8. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
 
