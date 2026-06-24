@@ -30,7 +30,7 @@ Expected local directories include:
 - `User-Management`
 - `Policy-Editor`
 
-## Clone the Required Repositories
+## Setup Local Server (Local Deployment)
 
 1. Clone this repository:
 
@@ -47,6 +47,27 @@ git clone git@github.com:DATAPACT/User-Management.git
 git clone git@github.com:DATAPACT/Contract_Service.git
 git clone git@github.com:DATAPACT/Policy-Editor.git
 ```
+
+3. Modify configuration files.
+
+(a) Modify the ".env" file inside "dips-local-dev" directory. Review the example values and update them for your machine, especially:
+
+	HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>	# To get YOUR_MACHINE_IP_ADDR, you can use ipconfig command (or similar other commands).
+	
+	# KEYCLOAK SERVER IP
+	KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
+	
+	# Keycloak settings (Update these values ACCORDING TO YOUR KEYCLOAK SETTINGS)
+	REALMS_NAME=<keycloak_realm_name>
+	KEYCLOAK_ADMIN_USERNAME=admin
+	KEYCLOAK_ADMIN_PASSWORD=123456
+		
+	# MongoDB Settings
+	MONGO_PASSWORD=<set_a_password>  # a new password to be used for MongoDB
+
+(b) Modify  Negotiation-Tool/privux/settings.py
+		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
+
 
 ## Environment Configuration
 
