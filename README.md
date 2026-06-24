@@ -66,7 +66,8 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 	MONGO_PASSWORD=<set_a_password>  # a new password to be used for MongoDB
 
 (b) Modify  Negotiation-Tool/privux/settings.py
-		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
+
+	ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
 
 
 ## Environment Configuration
