@@ -34,40 +34,40 @@ Expected local directories include:
 
 1. Clone this repository:
 
-```bash
-git clone git@github.com:DIPS-Tools/dips-local-dev.git
-cd dips-local-dev
-```
+	```bash
+	git clone git@github.com:DIPS-Tools/dips-local-dev.git
+	cd dips-local-dev
+	```
 
 2. Clone the related repositories into this directory:
 
-```bash
-git clone git@github.com:DATAPACT/Negotiation-Tool.git
-git clone git@github.com:DATAPACT/User-Management.git
-git clone git@github.com:DATAPACT/Contract_Service.git
-git clone git@github.com:DATAPACT/Policy-Editor.git
-```
+	```bash
+	git clone git@github.com:DATAPACT/Negotiation-Tool.git
+	git clone git@github.com:DATAPACT/User-Management.git
+	git clone git@github.com:DATAPACT/Contract_Service.git
+	git clone git@github.com:DATAPACT/Policy-Editor.git
+	```
 
 3. Modify configuration files.
 
-(a) Modify the ".env" file inside "dips-local-dev" directory. Review the example values and update them for your machine, especially:
+	(a) Modify the ".env" file inside "dips-local-dev" directory. Review the example values and update them for your machine, especially:
 
-	HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>	# To get YOUR_MACHINE_IP_ADDR, you can use ipconfig command (or similar other commands).
+		HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>	# To get YOUR_MACHINE_IP_ADDR, you can use ipconfig command (or similar other commands).
 	
-	# KEYCLOAK SERVER IP
-	KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
+		# KEYCLOAK SERVER IP
+		KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
 	
-	# Keycloak settings (Update these values ACCORDING TO YOUR KEYCLOAK SETTINGS)
-	REALMS_NAME=<keycloak_realm_name>
-	KEYCLOAK_ADMIN_USERNAME=admin
-	KEYCLOAK_ADMIN_PASSWORD=123456
+		# Keycloak settings (Update these values ACCORDING TO YOUR KEYCLOAK SETTINGS)
+		REALMS_NAME=<keycloak_realm_name>
+		KEYCLOAK_ADMIN_USERNAME=admin
+		KEYCLOAK_ADMIN_PASSWORD=123456
 		
-	# MongoDB Settings
-	MONGO_PASSWORD=<set_a_password>  # a new password to be used for MongoDB
+		# MongoDB Settings
+		MONGO_PASSWORD=<set_a_password>  # a new password to be used for MongoDB
 
-(b) Modify  Negotiation-Tool/privux/settings.py to add YOUR_MACHINE_IP_ADDR to ALLOWED_HOSTS.
-
-	ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
+	(b) Modify  Negotiation-Tool/privux/settings.py to add YOUR_MACHINE_IP_ADDR to ALLOWED_HOSTS.
+		
+		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
 
 4. Comment consent-app block (Line 32-83) in the docker-compose.yml file to build without Consent-Manager. Run the below command to build and start the environment.
 
@@ -89,9 +89,9 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 
 	(b) restart negotiation-web-local
 
-	```bash
- 	sudo docker restart negotiation-web-local
- 	```
+		```bash
+ 		sudo docker restart negotiation-web-local
+ 		```
 
 8. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
 
