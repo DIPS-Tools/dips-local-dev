@@ -85,13 +85,17 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 
 		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]   # Need to add IP address
 
-	(b) sudo docker restart negotiation-web-local
-
-7. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
+	(b) restart negotiation-web-local
 
 	```bash
- 		sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
-		sudo docker compose exec negotiation-web python manage.py migrate
+ 	sudo docker restart negotiation-web-local
+ 	```
+
+8. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
+
+	```bash
+ 	sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
+	sudo docker compose exec negotiation-web python manage.py migrate
  	```
 
 ## Environment Configuration
