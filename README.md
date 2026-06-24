@@ -79,7 +79,7 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 
 	(b) For User Login, click on "Get Started" button => Login.
 
-7.  If you get "Invalid HTTP_HOST header: ... You may need to add 'ip_address' to ALLOWED_HOSTS ALLOWED_HOSTS" error while browsing.
+6.  If you get "Invalid HTTP_HOST header: ... You may need to add 'ip_address' to ALLOWED_HOSTS ALLOWED_HOSTS" error while browsing.
 
 	(a) Modify  Negotiation-Tool/privux/settings.py
 
@@ -87,9 +87,10 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 
 	(b) sudo docker restart negotiation-web-local
 
-9. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
+7. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
 
 	sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
+
 	sudo docker compose exec negotiation-web python manage.py migrate
 
 ## Environment Configuration
