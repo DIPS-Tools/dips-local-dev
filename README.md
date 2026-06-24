@@ -89,9 +89,10 @@ git clone git@github.com:DATAPACT/Policy-Editor.git
 
 7. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
 
-	sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
-
-	sudo docker compose exec negotiation-web python manage.py migrate
+	```bash
+ 		sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
+		sudo docker compose exec negotiation-web python manage.py migrate
+ 	```
 
 ## Environment Configuration
 
