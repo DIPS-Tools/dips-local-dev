@@ -96,8 +96,8 @@ services:
     environment:
       - DJANGO_BASE_URL=http://negotiation-web:8000/
       - PYTHONPATH=/app
-      - MONGO_USER=root
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_USER=${MONGO_USER:-root}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-admin}
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=${MONGO_DB:-dips_services}
@@ -132,8 +132,8 @@ services:
     volumes:
       - ./Negotiation-Tool:/app
     environment:
-      - MONGO_USER=root
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_USER=${MONGO_USER:-root}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-admin}
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=${MONGO_DB:-dips_services}
@@ -175,8 +175,8 @@ services:
     volumes:
       - ./Contract_Service:/app
     environment:
-      - MONGO_USER=root
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_USER=${MONGO_USER:-root}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-admin}
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_AUTH_SOURCE=admin
@@ -207,8 +207,8 @@ services:
     volumes:
       - ./User-Management:/app
     environment:
-      - MONGO_USER=root
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_USER=${MONGO_USER:-root}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-admin}
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MASTER_PASSWORD=${MASTER_PASSWORD}
@@ -222,7 +222,7 @@ services:
       - KEYCLOAK_ADMIN_CLIENT_ID=admin-cli
       - KEYCLOAK_ADMIN_CLIENT_SECRET=
       - KEYCLOAK_ADMIN_USERNAME=${KEYCLOAK_ADMIN_USERNAME:-admin}
-      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-12345678}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
     depends_on:
       - mongo
     container_name: user-management-api-local
@@ -240,8 +240,8 @@ services:
       - ./User-Management:/app
     environment:
       - USER_MANAGEMENT_API_URL=http://user-management-api:8800
-      - MONGO_USER=root
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_USER=${MONGO_USER:-root}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-admin}
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=${USER_MONGO_DB:-dips_services}
@@ -270,8 +270,8 @@ services:
     ports:
       - "27018:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-admin}
     volumes:
       - mongo-data:/data/db
     restart: unless-stopped

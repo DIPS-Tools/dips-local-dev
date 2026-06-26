@@ -1,0 +1,39 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: keycloak-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: admin
+    ports:
+      - "3307:3306"
+    volumes:
+      - keycloak_mysql_data:/var/lib/mysql
+    command:
+      - --default-authentication-plugin=mysql_native_password
+
+  keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: keycloak-local-with-mysql
+    depends_on:
+      - mysql
+    ports:
+      - "0.0.0.0:9090:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://mysql:3306/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: admin
+    command: ["start-dev"]
+    restart: unless-stopped
+
+volumes:
+  keycloak_mysql_data:
+

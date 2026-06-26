@@ -18,6 +18,14 @@ Before starting, ensure the following tools are installed:
 - Docker
 - Docker Compose
 
+Minimal requirement: Docker with the Compose plugin is the only runtime requirement for the local stack itself. Git is also required because this repository expects the related application repositories to be cloned next to it.
+
+Useful notes:
+
+- You may need `sudo` for Docker commands on Linux if your user is not in the `docker` group.
+- A local IP address is required for `HOST_ADDR` and `KEYCLOAK_HOST_ADDR`.
+- Keycloak and MongoDB both have default test credentials in this repository so you can start quickly and change them later if needed.
+
 ## Repository Layout
 
 This repository expects the application repositories to be cloned inside the `dips-local-dev` directory so that the folder names match the paths used in `docker-compose.yml`.
@@ -48,180 +56,119 @@ Expected local directories include:
 	git clone git@github.com:DATAPACT/Policy-Editor.git
 	```
 
-3. Modify configuration files.
+3. Prepare Keycloak.
 
-	(a) Modify the ".env" file inside "dips-local-dev" directory. Review the example values and update them for your machine, especially:
+   If you already have a Keycloak server, use that server and note its IP address for the `.env` file.
 
-		HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>	# To get YOUR_MACHINE_IP_ADDR, you can use ipconfig command (or similar other commands).
-	
-		# KEYCLOAK SERVER IP
-		KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
-	
-		# Keycloak settings (Update these values ACCORDING TO YOUR KEYCLOAK SETTINGS)
-		REALMS_NAME=<keycloak_realm_name>
-		KEYCLOAK_ADMIN_USERNAME=<admin_user>
-		KEYCLOAK_ADMIN_PASSWORD=<admin_password>
-		
-		# MongoDB Settings
-		MONGO_PASSWORD=<set_a_password>  # a new password to be used for MongoDB
+   If you do not have a Keycloak server, start the default local Keycloak provided in this repository:
 
-	(b) Modify  Negotiation-Tool/privux/settings.py to add YOUR_MACHINE_IP_ADDR to ALLOWED_HOSTS.
-		
-		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]	
-
-4. Run the below command to build and start the environment.
-	To build the environment without the Consent Manager, comment out the `consent-app` section in the `docker-compose.yml` file (lines 32–83). The Consent Manager is still under development and is not yet ready for use.
-
-
-	```bash
-	sudo docker compose up -d --build
-	```
- 
-5. Browse http://localhost:8001/negotiation/
-
-	(a) For User Registration, click on "Get Started" button => Register.
-
-	(b) For User Login, click on "Get Started" button => Login.
-
-6.  If you get "Invalid HTTP_HOST header: ... You may need to add 'ip_address' to ALLOWED_HOSTS" error while browsing.
-
-	(a) Modify  Negotiation-Tool/privux/settings.py
-
-		ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]   # Need to add IP address
-
-	(b) restart negotiation-web-local
-
-		sudo docker restart negotiation-web-local	
-
-7. While User Login at http://localhost:8001/negotiation/, if you get OperationalError at /negotiation/login "no such table: django_session"
-
-	```bash
-	sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
- 	sudo docker compose exec negotiation-web python manage.py migrate
-	```
-
-8. To inspect the resolved configuration:
-	```bash
-	docker compose config
-	```
-
-## Using the Negotiation Tool
-
-Once the stack is running:
-
-1. Open `http://localhost:8001/negotiation/`.
-2. Register users through the UI or API.
-3. To simulate a negotiation between two parties, create:
-   * one **consumer** account; and
-   * one **provider** account.
-4. Log in using one of the registered accounts.
-5. If the following error occurs during login:
-   ```text
-   sqlite3.OperationalError: no such table: django_session
-   ```
-   execute these commands in order:
    ```bash
-   docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
-   docker compose exec negotiation-web python manage.py migrate
+   cd keycloak
+   docker compose up -d --build
+   cd ..
    ```
-   Then restart the `negotiation-web` service if necessary:
+
+   This starts a local Keycloak server on `http://localhost:9090` with the default admin credentials:
+
+   - Username: `admin`
+   - Password: `admin`
+
+4. Configure Keycloak for DIPS.
+
+   After your Keycloak server is running:
+
+   - Open the Keycloak dashboard. For the local bundled setup, use `http://localhost:9090`
+   - Sign in with your Keycloak admin account
+   - Create the realm `dips_services`
+   - Open `Realm settings` -> `User profile`
+   - Add the following user attributes:
+
+     - `firstName`
+     - `lastName`
+     - `user_type`
+     - `organization`
+     - `incorporation`
+     - `address`
+     - `VAT_No`
+     - `positionTitle`
+     - `phone`
+
+5. Configure `.env` in the `dips-local-dev` directory.
+
+   Review the example values and update them for your machine. At minimum, set the host IP values correctly:
+
+   ```dotenv
+   HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>
+   KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
+   ```
+
+   On Windows you can use `ipconfig`; on Linux or macOS use `ip addr`, `ifconfig`, or a similar command.
+
+   If you are using the bundled local Keycloak from step 3, `KEYCLOAK_HOST_ADDR` is usually the same as `HOST_ADDR`.
+
+   Default quick-test values are already provided for local testing:
+
+   ```dotenv
+   REALMS_NAME=dips_services
+   KEYCLOAK_ADMIN_USERNAME=admin
+   KEYCLOAK_ADMIN_PASSWORD=admin
+   MONGO_USER=root
+   MONGO_PASSWORD=admin
+   ```
+
+   If you just want a fast local installation for testing, you can keep those defaults. Change them only if you need a different local setup.
+
+6. If required by your local Django configuration, update `Negotiation-Tool/privux/settings.py` to allow access from your machine IP:
+
+   ```python
+   ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]
+   ```
+
+7. Build and start the local DIPS environment.
+
+   To build the environment without the Consent Manager, comment out the `consent-app` service in `docker-compose.yml`. The Consent Manager is still under development and is not yet ready for general use.
+
    ```bash
-   docker compose restart negotiation-web
-   ```
-6. Create an offer from the provider side using the API. See the example below.
-7. Submit a request from the consumer side through the UI or API.
-8. Review the offer and exchange counter-offers as needed.
-9. Accept the final offer.
-10. Complete the provider agreement step.
-11. Sign the negotiation from both the provider and consumer sides to finalise the negotiation.
-
-
-The finalised negotiation should then appear in the finalised negotiations table and be available for download.
-
-## Example: Create an Offer via API
-
-Call the provider endpoint `/provider/offer/new` with a request body similar to the example below:
-
-```json
-{
-  "title": "Population Census",
-  "consumer_id": "<CONSUMER-ID>",
-  "provider_id": "<PROVIDER-ID>",
-  "data_processing_workflow_object": {
-    "description": "Default data processing workflow",
-    "data_processing_stages": [],
-    "processing_purpose": "General data processing"
-  },
-  "natural_language_document": "",
-  "resource_description_object": {
-    "title": "Population Census",
-    "price": 349.9,
-    "price_unit": "USD/Month",
-    "uri": "https://upcast-project.eu/dataset/3f8f9ee5-310d-488e-a6dd-8856d2639258",
-    "policy_url": "https://upcast-project.eu/policy/71339e4f-36fb-4e95-8877-e100855c3e04",
-    "environmental_cost_of_generation": {},
-    "environmental_cost_of_serving": {},
-    "description": "Results of the Population and Housing Census concerning the permanent population of the Municipality of Thessaloniki. The data were collected by ELSTAT (Hellenic Statistical Authority).",
-    "type_of_data": "XML",
-    "data_format": "XLS",
-    "data_size": "246",
-    "geographic_scope": ["UK", "Spain"],
-    "tags": ["Home&Garden", "Family", "Community"],
-    "languages": ["English", "Spanish"],
-    "temporal_coverage": ["12/12/2022", "12/12/2025"],
-    "publisher": "https://upcast-project.eu/producer/edc8b623-1c90-4980-9a60-1545278e79c2",
-    "theme": [],
-    "distribution": {
-      "format": "XLS",
-      "mediaType": "TEXT",
-      "url": "https://tds.okfn.gr/product/209"
-    },
-    "created_at": "2025-12-16T16:17:33.790938",
-    "updated_at": "2025-12-16T16:17:33.790947",
-    "raw_object": null
-  },
-  "validity_period": "24",
-  "odrl_policy": {},
-  "contract_type": "dsa"
-}
-```
-
-After the offer is created, the consumer can view the available offer and make a request (by clicking the 'Create Request' button through the UI) to the provider.
-
-## Example: Create a Request through the GUI
-
-On the consumer side, Find the **Request New Dataset** area.
-
-1. Click **Choose file**.
-
-2. Select a JSON file, such as:
-
-   ```text
-   data_file_initialize_offer.json (Download link:  https://github.com/DIPS-Tools/dips-local-dev/blob/main/data_file_initialize_offer.json)
-   ```
-<img width="1555" height="291" alt="image" src="https://github.com/user-attachments/assets/ab4eb078-99ad-4266-9a7b-812857b217a2" />
-
-
-
-3. Ensure that the JSON file contains a valid `dcat:contactPoint` field.
-
-   The value of `dcat:contactPoint` can be the provider's organisation or email address. This information is used by the system to associate the request with the correct provider.
-
-   For example:
-
-   ```
-     "dcat:contactPoint": "JOT"
-     OR
-     "dcat:contactPoint": "some-provider@example.com"
+   sudo docker compose up -d --build
    ```
 
-   The exact structure must follow the schema expected by the Negotiation Tool.
+   MongoDB is started automatically by the main Compose stack. For a quick local test install, the default credentials are:
 
-4. Click **Create Request**.
+   - Username: `root`
+   - Password: `admin`
 
-You can review the offer and respond it with a request.
+8. Open the Negotiation Tool:
 
+   `http://localhost:8001/negotiation/`
 
-## Consent Manager
+   - For user registration, click `Get Started` -> `Register`
+   - For user login, click `Get Started` -> `Login`
 
-The Consent Manager uses the local emulator and supporting scripts in this repository. Add project-specific operational notes here; this will be updated soon.
+9. If you get `Invalid HTTP_HOST header` while browsing:
+
+   - Update `Negotiation-Tool/privux/settings.py`:
+
+     ```python
+     ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]
+     ```
+
+   - Restart the web container:
+
+     ```bash
+     sudo docker restart negotiation-web-local
+     ```
+
+10. If login fails with `OperationalError at /negotiation/login` and `no such table: django_session`, run:
+
+   ```bash
+   sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
+   sudo docker compose exec negotiation-web python manage.py migrate
+   ```
+
+11. To inspect the resolved Docker Compose configuration:
+
+   ```bash
+   docker compose config
+   ```
+
+12. User guides are available in the `user_guide` folder. For the Negotiation Tool walkthrough, see [user_guide/Negotiation-Tool_user_guide.md](./user_guide/Negotiation-Tool_user_guide.md).
