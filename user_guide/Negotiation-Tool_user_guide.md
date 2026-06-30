@@ -30,11 +30,54 @@ Once the stack is running:
 
 The finalised negotiation should then appear in the finalised negotiations table and be available for download.
 
+## Example: Create a Request through the GUI
+
+On the consumer side, Find the **Request New Dataset** area.
+
+1. Click **Choose file**.
+
+2. Select a JSON file, such as:
+
+   ```text
+   data_file_initialize_offer.json (Download link:  https://github.com/DIPS-Tools/dips-local-dev/blob/main/data_file_initialize_offer.json)
+   ```
+<img width="1555" height="291" alt="image" src="https://github.com/user-attachments/assets/ab4eb078-99ad-4266-9a7b-812857b217a2" />
+
+
+
+3. Ensure that the JSON file contains a valid `dcat:contactPoint` field.
+
+   The value of `dcat:contactPoint` can be the provider's organisation or email address. This information is used by the system to associate the request with the correct provider.
+
+   For example:
+
+   ```
+     "dcat:contactPoint": "JOT"
+     OR
+     "dcat:contactPoint": "some-provider@example.com"
+   ```
+
+4. Click **Create Request**.
+
+Review the offer and prepare a request in response. You can modify the proposed ODRL policies, custom policies, and other available terms. When the request is ready, click `Send` to submit it to the provider.
+
+## Example: Exchange a Counter-Offer through the GUI
+
+After the consumer submits a request, both parties can review the negotiation details in the Negotiation Tool UI. The provider can then respond to the request with a counter-offer.
+
+1. Open the relevant negotiation entry from the dashboard.
+2. Review the current request details, including the ODRL policy terms displayed on the negotiation page.
+3. Modify one or more of the proposed terms.
+4. Submit the updated proposal as a counter-offer.
+5. Log in as the consumer, open the same negotiation, and review the updated terms.
+6. The consumer can either accept the counter-offer or modify the terms and submit another counter-offer (referred to as a **request** on the consumer side).
+7. Repeat this process until both parties agree on the final terms.
+
 ## Example: Create an Offer via API
 
 The GUI should be used for the main walkthrough above. If you need to create an offer programmatically, call the provider endpoint `/provider/offer/new` with a request body similar to the example below.
 
-You can obtain `<CONSUMER-ID>` and `<PROVIDER-ID>` from the User Management UI at `http://localhost:8801` by opening the corresponding user records.
+You can obtain `<CONSUMER-ID>` and `<PROVIDER-ID>` from the User Management UI at `http://localhost:8801` by searching the corresponding user records.
 
 ```json
 {
@@ -81,54 +124,3 @@ You can obtain `<CONSUMER-ID>` and `<PROVIDER-ID>` from the User Management UI a
 ```
 
 After the offer is created, the consumer can view the available offer and make a request (by clicking the 'Create Request' button through the UI) to the provider.
-
-## Example: Exchange a Counter-Offer through the GUI
-
-After a consumer submits a request, both parties can review the negotiation details in the Negotiation Tool UI and respond with counter-offers.
-
-1. Open the negotiation entry from the dashboard.
-2. Review the current offer details, including the ODRL policy terms shown in the negotiation page.
-3. Modify one of the proposed terms. For example, update an ODRL permission so that the allowed use is narrower than the original provider offer.
-4. Submit the updated proposal as a counter-offer from the GUI.
-5. Log in as the other party, open the same negotiation, and review the updated terms.
-6. Repeat this process until both sides agree on the final version.
-
-Example counter-offer idea:
-
-- Original offer: allow the consumer to use the dataset for `commercial-use`.
-- Counter-offer: change that permission to a more limited use such as internal organisational use only, then submit the updated offer back through the negotiation screen.
-
-The exact labels and editable fields depend on the current GUI version, but the negotiation page is the place where each side reviews the active terms and sends the next counter-offer.
-
-## Example: Create a Request through the GUI
-
-On the consumer side, Find the **Request New Dataset** area.
-
-1. Click **Choose file**.
-
-2. Select a JSON file, such as:
-
-   ```text
-   data_file_initialize_offer.json (Download link:  https://github.com/DIPS-Tools/dips-local-dev/blob/main/data_file_initialize_offer.json)
-   ```
-<img width="1555" height="291" alt="image" src="https://github.com/user-attachments/assets/ab4eb078-99ad-4266-9a7b-812857b217a2" />
-
-
-
-3. Ensure that the JSON file contains a valid `dcat:contactPoint` field.
-
-   The value of `dcat:contactPoint` can be the provider's organisation or email address. This information is used by the system to associate the request with the correct provider.
-
-   For example:
-
-   ```
-     "dcat:contactPoint": "JOT"
-     OR
-     "dcat:contactPoint": "some-provider@example.com"
-   ```
-
-4. Click **Create Request**.
-
-You can review the offer and respond it with a request.
-
-

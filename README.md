@@ -81,10 +81,7 @@ Expected local directories include:
    - Sign in with your Keycloak admin account
    - Create the realm `dips_services`
    - Open `Realm settings` -> `User profile`
-   - Add the following user attributes:
-
-     - `firstName`
-     - `lastName`
+   - Add the user attributes (`username`, `email`, `firstName`, and `lastName` are default attributes; apart from these four attributes, create the following attributes):
      - `user_type`
      - `organization`
      - `incorporation`
@@ -92,7 +89,15 @@ Expected local directories include:
      - `VAT_No`
      - `positionTitle`
      - `phone`
-
+   - Add clients:
+     - Open `Clients` -> `Create client`
+     - For running Negotiation-Tool, add following clients:
+       - `user-management-api`
+       - `user-management-web`
+       - `negotiation-web`
+       - `negotiation-api`
+       - `contract-service`
+       - Note that: In the test env, for each client, the other clients are configured as allowed audiences, which means that a token requested by one client could be accepted by several other clients. 
 5. Configure `.env` in the `dips-local-dev` directory.
 
    Review the example values and update them for your machine. At minimum, set the host IP values correctly:
@@ -101,8 +106,6 @@ Expected local directories include:
    HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>
    KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
    ```
-
-   On Windows you can use `ipconfig`; on Linux or macOS use `ip addr`, `ifconfig`, or a similar command.
 
    If you are using the bundled local Keycloak from step 3, `KEYCLOAK_HOST_ADDR` is usually the same as `HOST_ADDR`.
 
