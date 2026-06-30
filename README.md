@@ -93,13 +93,15 @@ Expected local directories include:
         - `phone`
    - Add clients:
      - Open `Clients` -> `Create client`
-     - For running Negotiation-Tool, add following clients:
+     - To run the Negotiation Tool, create the following Keycloak clients:
        - `user-management-api`
        - `user-management-web`
        - `negotiation-web`
        - `negotiation-api`
        - `contract-service`
-       - Note that: In the test env, for each client, the other clients are configured as allowed audiences, which means that a token requested by one client could be accepted by several other clients. 
+       - In the test environment, each client is configured so that the other relevant clients are included as allowed audiences. This means that an access token requested by one client may be accepted by several other clients.
+       - When creating each client in the test environment, enable the **Direct access grants** option. This is required because the Tool requests access tokens by sending the user's username and password directly to Keycloak. If this option is disabled, Keycloak returns the error: `Client not allowed for direct access grants`.
+
 5. Configure `.env` in the `dips-local-dev` directory.
 
    Review the example values and update them for your machine. At minimum, set the host IP values correctly:
