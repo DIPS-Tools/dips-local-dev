@@ -81,14 +81,16 @@ Expected local directories include:
    - Sign in with your Keycloak admin account
    - Create the realm `dips_services`
    - Open `Realm settings` -> `User profile`
-   - Add the user attributes (`username`, `email`, `firstName`, and `lastName` are default attributes; apart from these four attributes, create the following attributes):
-     - `user_type`
-     - `organization`
-     - `incorporation`
-     - `address`
-     - `VAT_No`
-     - `positionTitle`
-     - `phone`
+   - Add the user attributes 
+     - `username`, `email`, `firstName`, and `lastName` are default attributes; 
+     -  apart from these four attributes, create the following attributes:
+        - `user_type`
+        - `organization`
+        - `incorporation`
+        - `address`
+        - `VAT_No`
+        - `positionTitle`
+        - `phone`
    - Add clients:
      - Open `Clients` -> `Create client`
      - For running Negotiation-Tool, add following clients:
