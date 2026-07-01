@@ -125,15 +125,18 @@ Expected local directories include:
 
    If you just want a fast local installation for testing, you can keep those defaults. Change them only if you need a different local setup.
 
-6. If required by your local Django configuration, update `Negotiation-Tool/privux/settings.py` to allow access from your machine IP:
+6. Configure Django to Allow Access from Your Machine IP (Required)
+
+   Update `Negotiation-Tool/privux/settings.py` to include your machine's IP address in `ALLOWED_HOSTS`. This configuration is **required** to allow Django to accept requests sent to your machine's IP address.
 
    ```python
    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]
    ```
 
+
 7. Build and start the local DIPS environment.
 
-   To build the environment without the Consent Manager, comment out the `consent-app` service in `docker-compose.yml`. The Consent Manager is still under development and is not yet ready for general use.
+   The Consent Manager is currently under development and is not yet ready for general use. Therefore, the `consent-app` service is commented out in `docker-compose.yml` by default. This allows the environment to be built without the Consent Manager.
 
    ```bash
    sudo docker compose up -d --build

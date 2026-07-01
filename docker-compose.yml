@@ -29,58 +29,58 @@ services:
     networks:
       - dips-local
 
-  # UpConsent React App + API
-  consent-app:
-    build:
-      context: ./Consent-Manager
-      dockerfile: Dockerfile
-      args:
-        VITE_API_BASE_URL: http://${HOST_ADDR}:8019/api
-        VITE_NEGOTIATION_BASE_URL: http://${HOST_ADDR}:8001/negotiation/organization/negotiation
-        VITE_FIRESTORE_EMULATOR_HOST: ${HOST_ADDR}
-        VITE_FIRESTORE_EMULATOR_PORT: 8080
-        VITE_AUTH_EMULATOR_HOST: ${HOST_ADDR}
-        VITE_AUTH_EMULATOR_PORT: 9099
-        VITE_STORAGE_EMULATOR_HOST: ${HOST_ADDR}
-        VITE_STORAGE_EMULATOR_PORT: 9199
-    ports:
-      - "5173:5173"  # Frontend static server
-      - "8019:8019"  # API server
-      - "9229:9229"  # Node inspector for debugging
-    volumes:
-      - ./Consent-Manager/.env:/app/.env:ro
-      - ./Consent-Manager/firebase-admin-key.json:/app/firebase-admin-key.json:ro
-      - ./emulator/firebase-admin-key.local.json:/app/firebase-admin-key.local.json:ro
-      - ./emulator/firebase-credentials.json:/app/firebase-credentials.json:ro
-      # Mount source code for hot reload
-      - ./Consent-Manager/src:/app/src
-      - ./Consent-Manager/server:/app/server
-    container_name: consent-react-local
-    restart: unless-stopped
-    environment:
-      # Emulator configuration (default: true for local dev)
-      - USE_EMULATOR=${USE_EMULATOR:-true}
-      - VITE_USE_EMULATOR=${VITE_USE_EMULATOR:-true}
-      - VITE_FIRESTORE_EMULATOR_HOST=${HOST_ADDR}
-      - VITE_FIRESTORE_EMULATOR_PORT=8080
-      - VITE_AUTH_EMULATOR_HOST=${HOST_ADDR}
-      - VITE_AUTH_EMULATOR_PORT=9099
-      - VITE_STORAGE_EMULATOR_HOST=${HOST_ADDR}
-      - VITE_STORAGE_EMULATOR_PORT=9199
-      # External APIs
-      - VITE_NEGOTIATION_BASE_URL=http://${HOST_ADDR}:8001/negotiation/organization/negotiation
-      - API_BASE_URL=http://negotiation-api:8001/negotiation-api
-      - EXTERNAL_API_BASE_URL=http://${HOST_ADDR}:8002/negotiation-api
-      - CONTRACT_SERVICE_URL=http://contract-service:8866
-      # Emulator hosts (only used when USE_EMULATOR=true)
-      - EMULATOR_FIRESTORE_HOST=firebase-emulator:8080
-      - EMULATOR_AUTH_HOST=firebase-emulator:9099
-      - EMULATOR_STORAGE_HOST=firebase-emulator:9199
-    depends_on:
-      - firebase-emulator
-    networks:
-      - dips-local
-    command: ["sh", "-c", "NODE_OPTIONS='--inspect=0.0.0.0:9229 --enable-source-maps' npm run server & npm run serve-static"]
+#  # UpConsent React App + API
+#  consent-app:
+#    build:
+#      context: ./Consent-Manager
+#      dockerfile: Dockerfile
+#      args:
+#        VITE_API_BASE_URL: http://${HOST_ADDR}:8019/api
+#        VITE_NEGOTIATION_BASE_URL: http://${HOST_ADDR}:8001/negotiation/organization/negotiation
+#        VITE_FIRESTORE_EMULATOR_HOST: ${HOST_ADDR}
+#        VITE_FIRESTORE_EMULATOR_PORT: 8080
+#        VITE_AUTH_EMULATOR_HOST: ${HOST_ADDR}
+#        VITE_AUTH_EMULATOR_PORT: 9099
+#        VITE_STORAGE_EMULATOR_HOST: ${HOST_ADDR}
+#        VITE_STORAGE_EMULATOR_PORT: 9199
+#    ports:
+#      - "5173:5173"  # Frontend static server
+#      - "8019:8019"  # API server
+#      - "9229:9229"  # Node inspector for debugging
+#    volumes:
+#      - ./Consent-Manager/.env:/app/.env:ro
+#      - ./Consent-Manager/firebase-admin-key.json:/app/firebase-admin-key.json:ro
+#      - ./emulator/firebase-admin-key.local.json:/app/firebase-admin-key.local.json:ro
+#      - ./emulator/firebase-credentials.json:/app/firebase-credentials.json:ro
+#      # Mount source code for hot reload
+#      - ./Consent-Manager/src:/app/src
+#      - ./Consent-Manager/server:/app/server
+#    container_name: consent-react-local
+#    restart: unless-stopped
+#    environment:
+#      # Emulator configuration (default: true for local dev)
+#      - USE_EMULATOR=${USE_EMULATOR:-true}
+#      - VITE_USE_EMULATOR=${VITE_USE_EMULATOR:-true}
+#      - VITE_FIRESTORE_EMULATOR_HOST=${HOST_ADDR}
+#      - VITE_FIRESTORE_EMULATOR_PORT=8080
+#      - VITE_AUTH_EMULATOR_HOST=${HOST_ADDR}
+#      - VITE_AUTH_EMULATOR_PORT=9099
+#      - VITE_STORAGE_EMULATOR_HOST=${HOST_ADDR}
+#      - VITE_STORAGE_EMULATOR_PORT=9199
+#      # External APIs
+#      - VITE_NEGOTIATION_BASE_URL=http://${HOST_ADDR}:8001/negotiation/organization/negotiation
+#      - API_BASE_URL=http://negotiation-api:8001/negotiation-api
+#      - EXTERNAL_API_BASE_URL=http://${HOST_ADDR}:8002/negotiation-api
+#      - CONTRACT_SERVICE_URL=http://contract-service:8866
+#      # Emulator hosts (only used when USE_EMULATOR=true)
+#      - EMULATOR_FIRESTORE_HOST=firebase-emulator:8080
+#      - EMULATOR_AUTH_HOST=firebase-emulator:9099
+#      - EMULATOR_STORAGE_HOST=firebase-emulator:9199
+#    depends_on:
+#      - firebase-emulator
+#    networks:
+#      - dips-local
+#    command: ["sh", "-c", "NODE_OPTIONS='--inspect=0.0.0.0:9229 --enable-source-maps' npm run server & npm run serve-static"]
 
   # Negotiation Plugin - Django Web Interface
   negotiation-web:
