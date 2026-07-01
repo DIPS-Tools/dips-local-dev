@@ -146,7 +146,7 @@ Expected local directories include:
    - Username: `root`
    - Password: `admin`
 
-8. TO avoid login failing with `OperationalError at /negotiation/login` and `no such table: django_session`, run:
+8. To avoid login failing with `OperationalError at /negotiation/login` and `no such table: django_session`, run:
 
    ```bash
    sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
