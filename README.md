@@ -77,13 +77,13 @@ Expected local directories include:
 
    After your Keycloak server is running:
 
-   - Open the Keycloak dashboard. For the local bundled setup, use `http://localhost:9090`
+   - Open the Keycloak dashboard. For the local bundled setup, use `http://localhost:9090` (it might take a minute after the docker image has been built, before this service is reachable)
    - Sign in with your Keycloak admin account
-   - Create the realm `dips_services`
+   - Create the realm `dips_services` (Manage realms --> Create realm, only set the `Realm name` required field)
    - Open `Realm settings` -> `User profile`
    - Add the user attributes 
-     - `username`, `email`, `firstName`, and `lastName` are default attributes; 
-     -  apart from these four attributes, create the following attributes:
+     - No need to change `username`, `email`, `firstName`, and `lastName`, which are default attributes; 
+     -  apart from these four attributes, create the following attributes (only set the required attribute name field):
         - `user_type`
         - `organization`
         - `incorporation`
@@ -93,18 +93,17 @@ Expected local directories include:
         - `phone`
    - Add clients:
      - Open `Clients` -> `Create client`
-     - To run the Negotiation Tool, create the following Keycloak clients:
+     - To run the Negotiation Tool, create the following Keycloak clients. When creating each client in the test environment, set the required `Client ID` field with the string below, and in the second screen enable the **Direct access grants** option. This is required because the Tool requests access tokens by sending the user's username and password directly to Keycloak. If this option is disabled, Keycloak returns the error: `Client not allowed for direct access grants`.
        - `user-management-api`
        - `user-management-web`
        - `negotiation-web`
        - `negotiation-api`
        - `contract-service`
        - In the test environment, each client is configured so that the other relevant clients are included as allowed audiences. This means that an access token requested by one client may be accepted by several other clients.
-       - When creating each client in the test environment, enable the **Direct access grants** option. This is required because the Tool requests access tokens by sending the user's username and password directly to Keycloak. If this option is disabled, Keycloak returns the error: `Client not allowed for direct access grants`.
 
 5. Configure `.env` in the `dips-local-dev` directory.
 
-   Review the example values and update them for your machine. At minimum, set the host IP values correctly:
+   Review the example values and update them for your machine. At minimum, update the host IP values correctly (e.g. for a local installation on Windows, look for the IPv4 Address with the `ipconfig` command):
 
    ```dotenv
    HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>
