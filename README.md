@@ -146,14 +146,21 @@ Expected local directories include:
    - Username: `root`
    - Password: `admin`
 
-8. Open the Negotiation Tool:
+8. TO avoid login failing with `OperationalError at /negotiation/login` and `no such table: django_session`, run:
+
+   ```bash
+   sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
+   sudo docker compose exec negotiation-web python manage.py migrate
+   ```
+
+9. Open the Negotiation Tool:
 
    `http://localhost:8001/negotiation/`
 
    - For user registration, click `Get Started` -> `Register`
    - For user login, click `Get Started` -> `Login`
 
-9. If you get `Invalid HTTP_HOST header` while browsing:
+10. If you get `Invalid HTTP_HOST header` while browsing:
 
    - Update `Negotiation-Tool/privux/settings.py`:
 
@@ -166,13 +173,6 @@ Expected local directories include:
      ```bash
      sudo docker restart negotiation-web-local
      ```
-
-10. If login fails with `OperationalError at /negotiation/login` and `no such table: django_session`, run:
-
-   ```bash
-   sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
-   sudo docker compose exec negotiation-web python manage.py migrate
-   ```
 
 11. To inspect the resolved Docker Compose configuration:
 
