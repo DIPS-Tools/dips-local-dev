@@ -20,15 +20,15 @@ Once the stack is running:
    ```bash
    docker compose restart negotiation-web
    ```
-7. Log in as the provider and create an offer through the GUI. The API can also be used for this, but the normal local test flow should use the web interface.
-8. Log in as the consumer and submit a request through the GUI.
-9. Review the offer and exchange counter-offers as needed.
-10. Accept the final offer.
-11. Complete the provider agreement step.
-12. Sign the negotiation from both the provider and consumer sides to finalise the negotiation.
+7. Log in as the **consumer** and create a request through the GUI. To initialise the request, upload a data JSON file, for example `data_file_initialize_offer.json`. This file can be downloaded from the `discovery-plugin`. Submit the request to the provider through the GUI. The API can also be used for this step, but the normal local test flow should use the web interface.
+8. Log in as the **provider** and respond to the existing request by creating a **counter-offer** through the GUI.
+9. Both the **consumer** and **provider** review the current request/offer and exchange counter-offers as needed until an agreement is reached.
+10. The **consumer** accepts the final offer.
+11. The **provider** agrees the acceptation.
+12. Both the **consumer** and **provider** sign the negotiation to finalise the agreement.
 
 
-The finalised negotiation should then appear in the finalised negotiations table and be available for download.
+The finalised negotiation will appear in the **Finalised Negotiations** table, where it is available for download.
 
 ## Example: Create a Request through the GUI
 
