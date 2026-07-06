@@ -194,37 +194,68 @@ Expected local directories include:
 
 13. User guides are available in the `user_guide` folder. For the Negotiation Tool walkthrough, see [user_guide/Negotiation-Tool_user_guide.md](./user_guide/Negotiation-Tool_user_guide.md). For RepuLink, see the `USER_GUIDE.md` in the RepuLink repository.
 
-## Host Port Reference
+[//]: # (## Host Port Reference)
 
-All host ports claimed by the local stack (including the separate Keycloak compose and services that are currently commented out). When adding a new tool, pick ports that are not on this list and add them here.
+[//]: # ()
+[//]: # (All host ports claimed by the local stack &#40;including the separate Keycloak compose and services that are currently commented out&#41;. When adding a new tool, pick ports that are not on this list and add them here.)
 
-| Host port | Tool | Purpose |
-|---|---|---|
-| 2182 | Kafka infrastructure | Zookeeper |
-| 3307 | Keycloak (`keycloak/` compose) | MySQL database |
-| 4000 | Firebase emulator | Emulator Suite UI |
-| 4400 | Firebase emulator | Emulator Hub |
-| 4500 | Firebase emulator | Reserved port |
-| 5173 | Consent Manager (commented out) | Frontend |
-| 5433 | RepuLink | PostgreSQL database |
-| 5678 | Negotiation Tool | debugpy (API) |
-| 5679 | Negotiation Tool | debugpy (Web) |
-| 8000 | RepuLink | Backend API |
-| 8001 | Negotiation Tool | Web UI |
-| 8002 | Negotiation Tool | Secure API |
-| 8003 | RepuLink | Frontend |
-| 8018 | Policy Editor | Web UI |
-| 8019 | Consent Manager (commented out) | API |
-| 8020 | Policy Editor | API |
-| 8080 | Firebase emulator | Firestore emulator |
-| 8081 | MongoDB | Mongo Express UI |
-| 8800 | User Management | API |
-| 8801 | User Management | Web UI |
-| 8866 | Contract Service | API |
-| 9090 | Keycloak (`keycloak/` compose) | Keycloak server |
-| 9093 | Kafka infrastructure | Kafka broker |
-| 9099 | Firebase emulator | Auth emulator |
-| 9150 | Firebase emulator | Firestore UI WebSocket |
-| 9199 | Firebase emulator | Storage emulator |
-| 9229 | Consent Manager (commented out) | Node inspector |
-| 27018 | MongoDB | MongoDB server |
+[//]: # ()
+[//]: # (| Host port | Tool | Purpose |)
+
+[//]: # (|---|---|---|)
+
+[//]: # (| 2182 | Kafka infrastructure | Zookeeper |)
+
+[//]: # (| 3307 | Keycloak &#40;`keycloak/` compose&#41; | MySQL database |)
+
+[//]: # (| 4000 | Firebase emulator | Emulator Suite UI |)
+
+[//]: # (| 4400 | Firebase emulator | Emulator Hub |)
+
+[//]: # (| 4500 | Firebase emulator | Reserved port |)
+
+[//]: # (| 5173 | Consent Manager &#40;commented out&#41; | Frontend |)
+
+[//]: # (| 5433 | RepuLink | PostgreSQL database |)
+
+[//]: # (| 5678 | Negotiation Tool | debugpy &#40;API&#41; |)
+
+[//]: # (| 5679 | Negotiation Tool | debugpy &#40;Web&#41; |)
+
+[//]: # (| 8000 | RepuLink | Backend API |)
+
+[//]: # (| 8001 | Negotiation Tool | Web UI |)
+
+[//]: # (| 8002 | Negotiation Tool | Secure API |)
+
+[//]: # (| 8003 | RepuLink | Frontend |)
+
+[//]: # (| 8018 | Policy Editor | Web UI |)
+
+[//]: # (| 8019 | Consent Manager &#40;commented out&#41; | API |)
+
+[//]: # (| 8020 | Policy Editor | API |)
+
+[//]: # (| 8080 | Firebase emulator | Firestore emulator |)
+
+[//]: # (| 8081 | MongoDB | Mongo Express UI |)
+
+[//]: # (| 8800 | User Management | API |)
+
+[//]: # (| 8801 | User Management | Web UI |)
+
+[//]: # (| 8866 | Contract Service | API |)
+
+[//]: # (| 9090 | Keycloak &#40;`keycloak/` compose&#41; | Keycloak server |)
+
+[//]: # (| 9093 | Kafka infrastructure | Kafka broker |)
+
+[//]: # (| 9099 | Firebase emulator | Auth emulator |)
+
+[//]: # (| 9150 | Firebase emulator | Firestore UI WebSocket |)
+
+[//]: # (| 9199 | Firebase emulator | Storage emulator |)
+
+[//]: # (| 9229 | Consent Manager &#40;commented out&#41; | Node inspector |)
+
+[//]: # (| 27018 | MongoDB | MongoDB server |)
