@@ -364,6 +364,119 @@ services:
       - dips-local
     command: python api.py
 
+  # RepuLink - PostgreSQL database
+  repulink-db:
+    image: postgres:17
+    container_name: repulink-db-local
+    ports:
+      - "5433:5432"
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=${REPULINK_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${REPULINK_POSTGRES_PASSWORD:-admin}
+      - POSTGRES_DB=${REPULINK_POSTGRES_DB:-repulink}
+    volumes:
+      - repulink-db-data:/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${REPULINK_POSTGRES_USER:-postgres} -d ${REPULINK_POSTGRES_DB:-repulink}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    restart: unless-stopped
+    networks:
+      - dips-local
+
+  # RepuLink - one-shot job: runs Alembic migrations and seeds initial data, then exits
+  repulink-prestart:
+    build:
+      context: ./RepuLink/backend
+    container_name: repulink-prestart-local
+    command: bash scripts/prestart.sh
+    environment:
+      - PROJECT_NAME=RepuLink
+      - ENVIRONMENT=local
+      - FRONTEND_HOST=http://${HOST_ADDR}:8003
+      - BACKEND_CORS_ORIGINS=http://localhost:8003,http://${HOST_ADDR}:8003
+      - SECRET_KEY=${REPULINK_SECRET_KEY:-repulink-local-dev-secret}
+      - FIRST_SUPERUSER=${REPULINK_FIRST_SUPERUSER:-admin@example.com}
+      - FIRST_SUPERUSER_PASSWORD=${REPULINK_FIRST_SUPERUSER_PASSWORD:-admin}
+      - POSTGRES_SERVER=repulink-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${REPULINK_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${REPULINK_POSTGRES_PASSWORD:-admin}
+      - POSTGRES_DB=${REPULINK_POSTGRES_DB:-repulink}
+      - KEYCLOAK_BASE_URL=http://${KEYCLOAK_HOST_ADDR}:9090
+      - KEYCLOAK_REALM=${REALMS_NAME}
+      - KEYCLOAK_CLIENT_ID=user-management-web
+      - KEYCLOAK_AUDIENCE=user-management-web
+      - USER_MANAGEMENT_API_URL=http://user-management-api:8800
+      - USER_MANAGEMENT_MASTER_PASSWORD=${MASTER_PASSWORD}
+    depends_on:
+      repulink-db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - dips-local
+
+  # RepuLink - Backend API (FastAPI)
+  repulink-backend:
+    build:
+      context: ./RepuLink/backend
+    container_name: repulink-backend-local
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=RepuLink
+      - ENVIRONMENT=local
+      - FRONTEND_HOST=http://${HOST_ADDR}:8003
+      - BACKEND_CORS_ORIGINS=http://localhost:8003,http://${HOST_ADDR}:8003
+      - SECRET_KEY=${REPULINK_SECRET_KEY:-repulink-local-dev-secret}
+      - FIRST_SUPERUSER=${REPULINK_FIRST_SUPERUSER:-admin@example.com}
+      - FIRST_SUPERUSER_PASSWORD=${REPULINK_FIRST_SUPERUSER_PASSWORD:-admin}
+      - POSTGRES_SERVER=repulink-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${REPULINK_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${REPULINK_POSTGRES_PASSWORD:-admin}
+      - POSTGRES_DB=${REPULINK_POSTGRES_DB:-repulink}
+      - KEYCLOAK_BASE_URL=http://${KEYCLOAK_HOST_ADDR}:9090
+      - KEYCLOAK_REALM=${REALMS_NAME}
+      - KEYCLOAK_CLIENT_ID=user-management-web
+      - KEYCLOAK_AUDIENCE=user-management-web
+      - USER_MANAGEMENT_API_URL=http://user-management-api:8800
+      - USER_MANAGEMENT_MASTER_PASSWORD=${MASTER_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      repulink-db:
+        condition: service_healthy
+      repulink-prestart:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    networks:
+      - dips-local
+
+  # RepuLink - Frontend (React, served by nginx)
+  # VITE_API_URL is baked into the build and must be reachable from the browser,
+  # so it uses the host address, not the internal Docker service name.
+  repulink-frontend:
+    build:
+      context: ./RepuLink/frontend
+      args:
+        - VITE_API_URL=http://${HOST_ADDR}:8000
+        - NODE_ENV=production
+    container_name: repulink-frontend-local
+    ports:
+      - "8003:80"
+    depends_on:
+      - repulink-backend
+    restart: unless-stopped
+    networks:
+      - dips-local
+
 networks:
   dips-local:
     name: dips-local
@@ -373,3 +486,4 @@ volumes:
   mongo-data:
   firebase-emulator-data:
   firebase-emulator-cache:
+  repulink-db-data:

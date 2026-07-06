@@ -37,6 +37,7 @@ Expected local directories include:
 - `Contract_Service`
 - `User-Management`
 - `Policy-Editor`
+- `RepuLink`
 
 ## Setup Local Server (Local Deployment)
 
@@ -54,6 +55,7 @@ Expected local directories include:
 	git clone git@github.com:DATAPACT/User-Management.git
 	git clone git@github.com:DATAPACT/Contract_Service.git
 	git clone git@github.com:DATAPACT/Policy-Editor.git
+	git clone git@github.com:DIPS-Tools/RepuLink.git
 	```
 
 3. Prepare Keycloak.
@@ -100,6 +102,7 @@ Expected local directories include:
        - `negotiation-api`
        - `contract-service`
        - In the test environment, each client is configured so that the other relevant clients are included as allowed audiences. This means that an access token requested by one client may be accepted by several other clients.
+     - RepuLink does not need its own client: it logs users in and validates tokens through the existing `user-management-web` client (so that client must have **Direct access grants** enabled, as described above).
 
 5. Configure `.env` in the `dips-local-dev` directory.
 
@@ -160,7 +163,16 @@ Expected local directories include:
    - For user registration, click `Get Started` -> `Register`
    - For user login, click `Get Started` -> `Login`
 
-10. If you get `Invalid HTTP_HOST header` while browsing:
+10. Open RepuLink:
+
+    `http://localhost:8003`
+
+    - The backend API docs are available at `http://localhost:8000/docs`.
+    - Database migrations and seed data run automatically at startup via the one-shot `repulink-prestart` container, so no manual migration commands are needed.
+    - Login and signup go through the shared Keycloak realm and the User Management service, so an account registered in RepuLink can also log into the Negotiation Tool, and vice versa.
+    - RepuLink stores its own data in PostgreSQL (exposed on host port `5433` for inspection); user credentials stay in Keycloak.
+
+11. If you get `Invalid HTTP_HOST header` while browsing:
 
    - Update `Negotiation-Tool/privux/settings.py`:
 
@@ -174,10 +186,45 @@ Expected local directories include:
      sudo docker restart negotiation-web-local
      ```
 
-11. To inspect the resolved Docker Compose configuration:
+12. To inspect the resolved Docker Compose configuration:
 
    ```bash
    docker compose config
    ```
 
-12. User guides are available in the `user_guide` folder. For the Negotiation Tool walkthrough, see [user_guide/Negotiation-Tool_user_guide.md](./user_guide/Negotiation-Tool_user_guide.md).
+13. User guides are available in the `user_guide` folder. For the Negotiation Tool walkthrough, see [user_guide/Negotiation-Tool_user_guide.md](./user_guide/Negotiation-Tool_user_guide.md). For RepuLink, see the `USER_GUIDE.md` in the RepuLink repository.
+
+## Host Port Reference
+
+All host ports claimed by the local stack (including the separate Keycloak compose and services that are currently commented out). When adding a new tool, pick ports that are not on this list and add them here.
+
+| Host port | Tool | Purpose |
+|---|---|---|
+| 2182 | Kafka infrastructure | Zookeeper |
+| 3307 | Keycloak (`keycloak/` compose) | MySQL database |
+| 4000 | Firebase emulator | Emulator Suite UI |
+| 4400 | Firebase emulator | Emulator Hub |
+| 4500 | Firebase emulator | Reserved port |
+| 5173 | Consent Manager (commented out) | Frontend |
+| 5433 | RepuLink | PostgreSQL database |
+| 5678 | Negotiation Tool | debugpy (API) |
+| 5679 | Negotiation Tool | debugpy (Web) |
+| 8000 | RepuLink | Backend API |
+| 8001 | Negotiation Tool | Web UI |
+| 8002 | Negotiation Tool | Secure API |
+| 8003 | RepuLink | Frontend |
+| 8018 | Policy Editor | Web UI |
+| 8019 | Consent Manager (commented out) | API |
+| 8020 | Policy Editor | API |
+| 8080 | Firebase emulator | Firestore emulator |
+| 8081 | MongoDB | Mongo Express UI |
+| 8800 | User Management | API |
+| 8801 | User Management | Web UI |
+| 8866 | Contract Service | API |
+| 9090 | Keycloak (`keycloak/` compose) | Keycloak server |
+| 9093 | Kafka infrastructure | Kafka broker |
+| 9099 | Firebase emulator | Auth emulator |
+| 9150 | Firebase emulator | Firestore UI WebSocket |
+| 9199 | Firebase emulator | Storage emulator |
+| 9229 | Consent Manager (commented out) | Node inspector |
+| 27018 | MongoDB | MongoDB server |
