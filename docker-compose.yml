@@ -408,8 +408,8 @@ services:
       - POSTGRES_DB=${REPULINK_POSTGRES_DB:-repulink}
       - KEYCLOAK_BASE_URL=http://${KEYCLOAK_HOST_ADDR}:9090
       - KEYCLOAK_REALM=${REALMS_NAME}
-      - KEYCLOAK_CLIENT_ID=user-management-web
-      - KEYCLOAK_AUDIENCE=user-management-web
+      - KEYCLOAK_CLIENT_ID=repulink-web
+      - KEYCLOAK_AUDIENCE=repulink-web
       - USER_MANAGEMENT_API_URL=http://user-management-api:8800
       - USER_MANAGEMENT_MASTER_PASSWORD=${MASTER_PASSWORD}
     depends_on:
@@ -441,8 +441,8 @@ services:
       - POSTGRES_DB=${REPULINK_POSTGRES_DB:-repulink}
       - KEYCLOAK_BASE_URL=http://${KEYCLOAK_HOST_ADDR}:9090
       - KEYCLOAK_REALM=${REALMS_NAME}
-      - KEYCLOAK_CLIENT_ID=user-management-web
-      - KEYCLOAK_AUDIENCE=user-management-web
+      - KEYCLOAK_CLIENT_ID=repulink-web
+      - KEYCLOAK_AUDIENCE=repulink-web
       - USER_MANAGEMENT_API_URL=http://user-management-api:8800
       - USER_MANAGEMENT_MASTER_PASSWORD=${MASTER_PASSWORD}
     healthcheck:
