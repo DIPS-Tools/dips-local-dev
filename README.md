@@ -154,6 +154,9 @@ Expected local directories include:
    ```bash
    sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
    sudo docker compose exec negotiation-web python manage.py migrate
+
+   for User-Mangerment Service run:
+   sudo docker compose exec user-management-web  python manage.py migrate
    ```
 
 9. Open the Negotiation Tool:
