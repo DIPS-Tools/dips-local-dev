@@ -41,7 +41,7 @@ cd keycloak
 docker compose up -d --build
 cd ..
 ```
-
+Keycloak server may need a while for initialisation.
 Runs at `http://localhost:9090` (usr:admin/pwd:admin). Then, one-time setup:
 
 1. Create realm `dips_services`.
@@ -121,6 +121,7 @@ sudo docker compose up -d --build
 - **RepuLink can authenticate but calls to `user-management-api` get rejected (401/403)** — the `repulink-web` client is missing the `user-management-api` audience mapper (step 3 above), so tokens it issues aren't accepted by that service.
 - **Frontend calls the wrong API host** — `VITE_API_URL` is baked in at build time; rebuild `repulink-frontend` after changing `HOST_ADDR`.
 - **`repulink-backend` stuck waiting** — check `repulink-prestart` logs (`docker compose logs repulink-prestart-local`); the backend won't start until that job completes successfully.
+- **`repulink-prestart` exits with code 2 on Windows** — check `RepuLink/backend/scripts/prestart.sh` for CRLF line endings. Bash will treat the trailing `\r` as part of the command name and fail with messages like `python: can't open file ...\r`; convert the file to LF and keep it covered by `.gitattributes` (`*.sh text eol=lf`).
 - **Verify resolved config**: `docker compose config`
 
 ## Reference
