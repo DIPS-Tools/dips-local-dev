@@ -1,4 +1,4 @@
-You can copy most settings from `datapack-dev` to a new realm called `dips_services` by exporting `datapack-dev`, editing the exported JSON, and importing it as a new realm.
+You can copy most settings from one realm to another realm, such as from `datapack-dev` to a new realm called `dips_services` by exporting `datapack-dev`, editing the exported JSON, and importing it as a new realm.
 
 Keycloak officially supports realm export/import using `kc.sh export` and `kc.sh import`; export can target a specific realm with `--realm`, and import can read from a directory or file. Keycloak also notes that the server should not be running when using these commands directly. ([Keycloak][1])
 
@@ -51,7 +51,7 @@ cp datapack-dev-realm.json dips_services-realm.json
 Then edit the new file:
 
 ```bash
-nano dips_services-realm.json
+vim dips_services-realm.json
 ```
 
 Change at least these fields:
@@ -109,7 +109,7 @@ docker run --rm \
   import --dir /backup --override false
 ```
 
-I recommend `--override false` so Keycloak will not overwrite an existing realm accidentally. By default, Keycloak’s import uses override behavior unless configured otherwise. ([Keycloak][1])
+recommend `--override false` so Keycloak will not overwrite an existing realm accidentally. By default, Keycloak’s import uses override behavior unless configured otherwise. ([Keycloak][1])
 
 Then start Keycloak again:
 
