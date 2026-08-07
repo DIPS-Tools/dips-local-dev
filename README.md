@@ -77,6 +77,53 @@ Expected local directories include:
 
 4. Configure Keycloak for DIPS.
 
+   #### Import the existing Keycloak configuration (recommended)
+
+   The repository includes a ready-to-import `dips_services` realm in
+   `keycloak/keycloak-dips-services-export/`. If you started the bundled
+   Keycloak in step 3, run the following commands from the `keycloak/`
+   directory. Keep the MySQL container running while Keycloak is stopped:
+
+   ```bash
+   cd keycloak
+   docker stop keycloak-local-with-mysql
+
+   docker run --rm \
+     --name keycloak-import-dips-services \
+     --network keycloak_default \
+     -e KC_DB=mysql \
+     -e KC_DB_URL='jdbc:mysql://keycloak-mysql:3306/keycloak' \
+     -e KC_DB_USERNAME=keycloak \
+     -e KC_DB_PASSWORD=admin \
+     -v "$(pwd)/keycloak-dips-services-export:/backup:ro" \
+     keycloak-keycloak:latest \
+     import \
+     --dir /backup
+
+   docker start keycloak-local-with-mysql
+   cd ..
+   ```
+
+   If the Docker network is not named `keycloak_default`, find its name with:
+
+   ```bash
+   docker inspect keycloak-mysql \
+     --format '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{"\n"}}{{end}}'
+   ```
+
+   Replace `keycloak_default` in the import command with the returned name.
+   Import the configuration before manually creating `dips_services`, because
+   Keycloak skips an existing realm instead of replacing it. The bundled
+   export contains the realm and client configuration, but no user accounts.
+
+   For the complete import procedure and troubleshooting notes, see
+   [`keycloak/keycloak_configs_backup_and_import.md`](keycloak/keycloak_configs_backup_and_import.md).
+
+   After a successful import, continue with step 5. Otherwise, configure
+   Keycloak manually below.
+
+   #### Configure Keycloak manually
+
    After your Keycloak server is running:
 
    - Open the Keycloak dashboard. For the local bundled setup, use `http://localhost:9090` (it might take a minute after the docker image has been built, before this service is reachable)
