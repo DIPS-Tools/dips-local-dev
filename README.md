@@ -126,4 +126,4 @@ sudo docker compose up -d --build
 
 ## Reference
 
-Full RepuLink usage docs live in `RepuLink/USER_GUIDE.md` once cloned. General stack setup: [README.md(https://github.com/DIPS-Tools/dips-local-dev/blob/main/README.md).
+Full RepuLink usage docs live in `RepuLink/USER_GUIDE.md` once cloned. General stack setup: [README.md](https://github.com/DIPS-Tools/dips-local-dev/blob/main/README.md).
