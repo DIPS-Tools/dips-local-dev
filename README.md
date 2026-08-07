@@ -13,7 +13,7 @@ Guide to deploying RepuLink locally via `dips-local-dev`. RepuLink is a FastAPI 
 
 External dependencies (not part of the RepuLink build, but required for it to work):
 
-- **Keycloak** (`dips_services` realm) — RepuLink has its own client, `repulink-web`, in the shared realm (see [Keycloak client for RepuLink](#keycloak-client-for-repulink) below). Users are still shared with the other DIPS tools; the dedicated client just means RepuLink logins are attributable in Keycloak's own event log instead of showing up as `user-management-web`.
+- **Keycloak** (`dips_services` realm) — RepuLink has its own client, `repulink-web`, in the shared realm (see [Configure RepuLink client manually](#configure-repulink-client-manually) below). Users are still shared with the other DIPS tools; the dedicated client just means RepuLink logins are attributable in Keycloak's own event log instead of showing up as `user-management-web`.
 - **`user-management-api`** (port 8800) — RepuLink's backend calls it at `USER_MANAGEMENT_API_URL`; this service in turn requires `mongo`.
 
 Startup order is enforced by `depends_on` for the RepuLink containers themselves (`repulink-db` → `repulink-prestart` → `repulink-backend` → `repulink-frontend`), but **not** for Keycloak / `user-management-api` / `mongo` — those must be brought up separately before login will work.
@@ -39,12 +39,61 @@ git clone https://github.com/DATAPACT/User-Management.git   # RepuLink needs thi
 ```bash
 cd keycloak
 docker compose up -d --build
+```
+
+Keycloak may take a while to initialise. It runs at `http://localhost:9090`
+(username: `admin`, password: `admin`).
+
+### Import the existing Keycloak configuration (recommended)
+
+The repository includes a ready-to-import `dips_services` realm in
+`keycloak-dips-services-export/`. After starting Keycloak as shown above, keep
+the MySQL container running, stop Keycloak, and run the import from the
+`keycloak/` directory:
+
+```bash
+docker stop keycloak-local-with-mysql
+
+docker run --rm \
+  --name keycloak-import-dips-services \
+  --network keycloak_default \
+  -e KC_DB=mysql \
+  -e KC_DB_URL='jdbc:mysql://keycloak-mysql:3306/keycloak' \
+  -e KC_DB_USERNAME=keycloak \
+  -e KC_DB_PASSWORD=admin \
+  -v "$(pwd)/keycloak-dips-services-export:/backup:ro" \
+  keycloak-keycloak:latest \
+  import \
+  --dir /backup
+
+docker start keycloak-local-with-mysql
 cd ..
 ```
-Keycloak server may need a while for initialisation.
-Runs at `http://localhost:9090` (usr:admin/pwd:admin). Then, one-time setup:
 
-1. Create realm `dips_services`.
+If the Docker network is not named `keycloak_default`, find its name with:
+
+```bash
+docker inspect keycloak-mysql \
+  --format '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{"\n"}}{{end}}'
+```
+
+Replace `keycloak_default` in the import command with the returned name. A
+successful import reports that the `dips_services` realm was imported. This
+export contains the realm and client configuration, but no user accounts. Run
+the import before manually creating `dips_services`; Keycloak skips a realm
+that already exists instead of replacing it.
+
+For the complete import procedure and troubleshooting notes, see
+[`keycloak/keycloak_configs_backup.md`](keycloak/keycloak_configs_backup.md).
+
+If you complete the Keycloak configuration import, go to [Step 3: Configure `.env`](#3-configure-env). If you have an existing Keycloak and only want to add a new `repulink-web` client, go to [Configure Keycloak manually](#configure-keycloak-manually).
+
+
+### Configure Keycloak manually
+
+If you do not import the existing configuration and just add `repulink-web` to your existing realm, for example, `dips_services`, complete this one-time setup:
+
+1. Create or Select the realm `dips_services`.
 2. `Realm settings` → `User profile` → add attributes: `user_type`, `organization`, `incorporation`, `address`, `VAT_No`, `positionTitle`, `phone`. Not required for a basic login/auth smoke test — only needed if a registration flow writes these fields to the Keycloak user and you hit a user-profile validation error, or you need them to actually persist on the Keycloak side.
 3. `Clients` → `Create client`:
    - `user-management-api`
@@ -54,9 +103,12 @@ Runs at `http://localhost:9090` (usr:admin/pwd:admin). Then, one-time setup:
 
 If you already run a Keycloak server elsewhere, skip this and just point `KEYCLOAK_HOST_ADDR` at it (the `repulink-web` client and audience mapper below still need to exist on it).
 
-## Keycloak client for RepuLink
+#### Configure RepuLink client  manually
 
 RepuLink shares the `dips_services` user pool (so accounts still work across all DIPS tools) but authenticates through its **own client**, `repulink-web`, instead of piggybacking on `user-management-web`. This is what makes RepuLink logins distinguishable in Keycloak's event log without fragmenting the user base.
+
+If you imported the bundled configuration above, `repulink-web`, its audience
+mappers, and event logging are already configured; skip the manual steps below.
 
 1. `Clients` → `Create client`, Client ID `repulink-web`, Client authentication **off** (public client, same as `user-management-web` — RepuLink's backend does a direct resource-owner password grant, no secret configured in compose).
 2. `Capability config` → enable **Direct access grants**.
