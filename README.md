@@ -123,12 +123,13 @@ Expected local directories include:
    Keycloak manually below.
 
    #### Configure Keycloak manually
-
+   
+   If you do not import the existing configuration and just add clients to your existing realm, you can configure Keycloak manually.
    After your Keycloak server is running:
 
    - Open the Keycloak dashboard. For the local bundled setup, use `http://localhost:9090` (it might take a minute after the docker image has been built, before this service is reachable)
    - Sign in with your Keycloak admin account
-   - Create the realm `dips_services` (Manage realms --> Create realm, only set the `Realm name` required field)
+   - Create or Select a realm, such as `dips_services` (Manage realms --> Create realm, only set the `Realm name` required field)
    - Open `Realm settings` -> `User profile`
    - Add the user attributes 
      - No need to change `username`, `email`, `firstName`, and `lastName`, which are default attributes; 
