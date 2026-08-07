@@ -84,7 +84,7 @@ the import before manually creating `dips_services`; Keycloak skips a realm
 that already exists instead of replacing it.
 
 For the complete import procedure and troubleshooting notes, see
-[`keycloak/keycloak_configs_backup.md`](keycloak/keycloak_configs_backup.md).
+[`keycloak/keycloak_configs_backup_and_import.md`](keycloak/keycloak_configs_backup_and_import.md).
 
 If you complete the Keycloak configuration import, go to [Step 3: Configure `.env`](#3-configure-env). If you have an existing Keycloak and only want to add a new `repulink-web` client, go to [Configure Keycloak manually](#configure-keycloak-manually).
 
