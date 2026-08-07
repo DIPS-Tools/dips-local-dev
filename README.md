@@ -1,261 +1,128 @@
-# DIPS Local Development
+# RepuLink Deployment Guideline
 
-This repository provides the local Docker Compose environment used to run the DIPS services for development and testing.
+Guide to deploying RepuLink locally via `dips-local-dev`. RepuLink is a FastAPI backend + React frontend, backed by its own PostgreSQL database, and it authenticates through the shared Keycloak + User Management services.
 
-## Purpose
+## Architecture
 
-Use this repository to:
+| Service | Image/Build | Port | Purpose |
+|---|---|---|---|
+| `repulink-db` | `postgres:17` | 5433 → 5432 | RepuLink's own database |
+| `repulink-prestart` | `./RepuLink/backend` | — | One-shot: Alembic migrations + seed data, then exits |
+| `repulink-backend` | `./RepuLink/backend` | 8000 | FastAPI API (`/docs` for OpenAPI) |
+| `repulink-frontend` | `./RepuLink/frontend` | 8003 | React app served by nginx |
 
-- manage the shared local development environment;
-- start dependent services with Docker Compose;
-- connect the related application repositories in a single workspace.
+External dependencies (not part of the RepuLink build, but required for it to work):
+
+- **Keycloak** (`dips_services` realm) — RepuLink has its own client, `repulink-web`, in the shared realm (see [Keycloak client for RepuLink](#keycloak-client-for-repulink) below). Users are still shared with the other DIPS tools; the dedicated client just means RepuLink logins are attributable in Keycloak's own event log instead of showing up as `user-management-web`.
+- **`user-management-api`** (port 8800) — RepuLink's backend calls it at `USER_MANAGEMENT_API_URL`; this service in turn requires `mongo`.
+
+Startup order is enforced by `depends_on` for the RepuLink containers themselves (`repulink-db` → `repulink-prestart` → `repulink-backend` → `repulink-frontend`), but **not** for Keycloak / `user-management-api` / `mongo` — those must be brought up separately before login will work.
 
 ## Prerequisites
 
-Before starting, ensure the following tools are installed:
-
+- Docker + Docker Compose plugin
 - Git
-- Docker
-- Docker Compose
+- A local machine IP address (for `HOST_ADDR`)
 
-Minimal requirement: Docker with the Compose plugin is the only runtime requirement for the local stack itself. Git is also required because this repository expects the related application repositories to be cloned next to it.
+## 1. Clone required repos
 
-Useful notes:
+RepuLink's Docker build context expects `./RepuLink/backend` and `./RepuLink/frontend` inside `dips-local-dev/`. `RepuLink/` is git-ignored here, so clone it fresh:
 
-- You may need `sudo` for Docker commands on Linux if your user is not in the `docker` group.
-- A local IP address is required for `HOST_ADDR` and `KEYCLOAK_HOST_ADDR`.
-- Keycloak and MongoDB both have default test credentials in this repository so you can start quickly and change them later if needed.
+```bash
+cd dips-local-dev/
+git clone https://github.com/DIPS-Tools/RepuLink.git
+git clone https://github.com/DATAPACT/User-Management.git   # RepuLink needs this for login
+```
 
-## Repository Layout
+## 2. Start and configure Keycloak
 
-This repository expects the application repositories to be cloned inside the `dips-local-dev` directory so that the folder names match the paths used in `docker-compose.yml`.
+```bash
+cd keycloak
+docker compose up -d --build
+cd ..
+```
 
-Expected local directories include:
+Runs at `http://localhost:9090` (usr:admin/pwd:admin). Then, one-time setup:
 
-- `Consent-Manager`
-- `Negotiation-Tool`
-- `Contract_Service`
-- `User-Management`
-- `Policy-Editor`
-- `RepuLink`
+1. Create realm `dips_services`.
+2. `Realm settings` → `User profile` → add attributes: `user_type`, `organization`, `incorporation`, `address`, `VAT_No`, `positionTitle`, `phone`. Not required for a basic login/auth smoke test — only needed if a registration flow writes these fields to the Keycloak user and you hit a user-profile validation error, or you need them to actually persist on the Keycloak side.
+3. `Clients` → `Create client`:
+   - `user-management-api`
+   - `user-management-web` — **enable Direct access grants**
+   - `repulink-web` — RepuLink's own client, see below
+   - (only needed for the wider stack: `negotiation-web`, `negotiation-api`, `contract-service`)
 
-## Setup Local Server (Local Deployment)
+If you already run a Keycloak server elsewhere, skip this and just point `KEYCLOAK_HOST_ADDR` at it (the `repulink-web` client and audience mapper below still need to exist on it).
 
-1. Clone this repository:
+## Keycloak client for RepuLink
 
-	```bash
-	git clone git@github.com:DIPS-Tools/dips-local-dev.git
-	cd dips-local-dev
-	```
+RepuLink shares the `dips_services` user pool (so accounts still work across all DIPS tools) but authenticates through its **own client**, `repulink-web`, instead of piggybacking on `user-management-web`. This is what makes RepuLink logins distinguishable in Keycloak's event log without fragmenting the user base.
 
-2. Clone the related repositories into this directory:
+1. `Clients` → `Create client`, Client ID `repulink-web`, Client authentication **off** (public client, same as `user-management-web` — RepuLink's backend does a direct resource-owner password grant, no secret configured in compose).
+2. `Capability config` → enable **Direct access grants**.
+3. Add two Audience mappers under `Client scopes` → `repulink-web-dedicated` → `Add mapper` → `By configuration` → `Audience`. Keycloak does **not** automatically include the issuing client in a token's `aud` claim — only explicitly mapped audiences appear — so both are required or `repulink-backend`'s own `KEYCLOAK_AUDIENCE=repulink-web` check will reject every request after login:
+   - `repulink-web-self-audience` → *Included Client Audience*: `repulink-web` (required — without this, RepuLink's own backend rejects its own tokens)
+   - `user-management-api-audience` → *Included Client Audience*: `user-management-api` (so tokens are still accepted when RepuLink's backend forwards them to `user-management-api`)
+4. Enable login event logging so RepuLink's usage actually shows up: `Realm settings` → `Events` → `User events settings` → toggle **Save events** on (default retention is fine for local dev). Login events will now carry `client_id=repulink-web`, filterable in `Events` → `User events`.
 
-	```bash
-	git clone git@github.com:DATAPACT/Negotiation-Tool.git
-	git clone git@github.com:DATAPACT/User-Management.git
-	git clone git@github.com:DATAPACT/Contract_Service.git
-	git clone git@github.com:DATAPACT/Policy-Editor.git
-	git clone git@github.com:DIPS-Tools/RepuLink.git
-	```
+`docker-compose.yml` already points `repulink-prestart` and `repulink-backend` at this client (`KEYCLOAK_CLIENT_ID=repulink-web`, `KEYCLOAK_AUDIENCE=repulink-web`) — no `.env` changes needed.
 
-3. Prepare Keycloak.
+## 3. Configure `.env`
 
-   If you already have a Keycloak server, use that server and note its IP address for the `.env` file.
+At minimum, set your machine's IP:
 
-   If you do not have a Keycloak server, start the default local Keycloak provided in this repository:
+```dotenv
+HOST_ADDR=<YOUR_MACHINE_IP>
+KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_IP>   # same as HOST_ADDR if using the bundled Keycloak
+```
 
-   ```bash
-   cd keycloak
-   docker compose up -d --build
-   cd ..
-   ```
+RepuLink-specific defaults (fine for local testing, override if needed):
 
-   This starts a local Keycloak server on `http://localhost:9090` with the default admin credentials:
+```dotenv
+REPULINK_POSTGRES_USER=postgres
+REPULINK_POSTGRES_PASSWORD=admin_repulink
+REPULINK_POSTGRES_DB=repulink
+REPULINK_SECRET_KEY=repulink-local-dev-secret
+REPULINK_FIRST_SUPERUSER=admin@example.com
+REPULINK_FIRST_SUPERUSER_PASSWORD=admin123   # min 8 characters
+```
 
-   - Username: `admin`
-   - Password: `admin`
+Note: `VITE_API_URL` for the frontend is baked in at build time from `HOST_ADDR` (browser-facing), so re-run `--build` on `repulink-frontend` if `HOST_ADDR` changes.
 
-4. Configure Keycloak for DIPS.
+## 4. Build and start
 
-   After your Keycloak server is running:
+Bring up RepuLink plus the auth dependencies it needs (skip the rest of the stack — Negotiation Tool, Contract Service, Kafka, Policy Editor — unless you need them too):
 
-   - Open the Keycloak dashboard. For the local bundled setup, use `http://localhost:9090` (it might take a minute after the docker image has been built, before this service is reachable)
-   - Sign in with your Keycloak admin account
-   - Create the realm `dips_services` (Manage realms --> Create realm, only set the `Realm name` required field)
-   - Open `Realm settings` -> `User profile`
-   - Add the user attributes 
-     - No need to change `username`, `email`, `firstName`, and `lastName`, which are default attributes; 
-     -  apart from these four attributes, create the following attributes (only set the required attribute name field):
-        - `user_type`
-        - `organization`
-        - `incorporation`
-        - `address`
-        - `VAT_No`
-        - `positionTitle`
-        - `phone`
-   - Add clients:
-     - Open `Clients` -> `Create client`
-     - To run the Negotiation Tool, create the following Keycloak clients. When creating each client in the test environment, set the required `Client ID` field with the string below, and in the second screen enable the **Direct access grants** option. This is required because the Tool requests access tokens by sending the user's username and password directly to Keycloak. If this option is disabled, Keycloak returns the error: `Client not allowed for direct access grants`.
-       - `user-management-api`
-       - `user-management-web`
-       - `negotiation-web`
-       - `negotiation-api`
-       - `contract-service`
-       - In the test environment, each client is configured so that the other relevant clients are included as allowed audiences. This means that an access token requested by one client may be accepted by several other clients.
-     - RepuLink does not need its own client: it logs users in and validates tokens through the existing `user-management-web` client (so that client must have **Direct access grants** enabled, as described above).
+```bash
+sudo docker compose up -d --build \
+  mongo user-management-api \
+  repulink-db repulink-prestart repulink-backend repulink-frontend
+```
 
-5. Configure `.env` in the `dips-local-dev` directory.
+Or bring up the entire DIPS environment:
 
-   Review the example values and update them for your machine. At minimum, update the host IP values correctly (e.g. for a local installation on Windows, look for the IPv4 Address with the `ipconfig` command):
+```bash
+sudo docker compose up -d --build
+```
 
-   ```dotenv
-   HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>
-   KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
-   ```
+`repulink-prestart` runs migrations and seeds initial data automatically — no manual migration step is needed.
 
-   If you are using the bundled local Keycloak from step 3, `KEYCLOAK_HOST_ADDR` is usually the same as `HOST_ADDR`.
+## 5. Access
 
-   Default quick-test values are already provided for local testing:
+- Frontend: `http://localhost:8003`
+- Backend API docs: `http://localhost:8000/docs`
+- Postgres (for inspection): host port `5433`, db `repulink`
+- Login/signup go through Keycloak + `user-management-api`; an account created in RepuLink also works in the Negotiation Tool, and vice versa.
 
-   ```dotenv
-   REALMS_NAME=dips_services
-   KEYCLOAK_ADMIN_USERNAME=admin
-   KEYCLOAK_ADMIN_PASSWORD=admin
-   MONGO_USER=root
-   MONGO_PASSWORD=admin
-   ```
+## Troubleshooting
 
-   If you just want a fast local installation for testing, you can keep those defaults. Change them only if you need a different local setup.
+- **Login fails / token errors** — confirm `repulink-web` exists with Direct access grants enabled, and that `user-management-api` + `mongo` are actually running (they aren't auto-started by RepuLink's `depends_on` chain).
+- **Login succeeds but every page immediately logs you back out** — check `repulink-backend` logs for `Keycloak token verification failed: Audience doesn't match` (`docker logs repulink-backend-local`). Means the `repulink-web-self-audience` mapper (step 3 above) is missing, so the backend rejects its own client's tokens; the frontend treats any 401/403 as session-expired and force-logs-out. Add the mapper, then log out/in again to get a token minted with the right audience.
+- **RepuLink can authenticate but calls to `user-management-api` get rejected (401/403)** — the `repulink-web` client is missing the `user-management-api` audience mapper (step 3 above), so tokens it issues aren't accepted by that service.
+- **Frontend calls the wrong API host** — `VITE_API_URL` is baked in at build time; rebuild `repulink-frontend` after changing `HOST_ADDR`.
+- **`repulink-backend` stuck waiting** — check `repulink-prestart` logs (`docker compose logs repulink-prestart-local`); the backend won't start until that job completes successfully.
+- **Verify resolved config**: `docker compose config`
 
-6. Configure Django to Allow Access from Your Machine IP (Required)
+## Reference
 
-   Update `Negotiation-Tool/privux/settings.py` to include your machine's IP address in `ALLOWED_HOSTS`. This configuration is **required** to allow Django to accept requests sent to your machine's IP address.
-
-   ```python
-   ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]
-   ```
-
-
-7. Build and start the local DIPS environment.
-
-   The Consent Manager is currently under development and is not yet ready for general use. Therefore, the `consent-app` service is commented out in `docker-compose.yml` by default. This allows the environment to be built without the Consent Manager.
-
-   ```bash
-   sudo docker compose up -d --build
-   ```
-
-   MongoDB is started automatically by the main Compose stack. For a quick local test install, the default credentials are:
-
-   - Username: `root`
-   - Password: `admin`
-
-8. To avoid login failing with `OperationalError at /negotiation/login` and `no such table: django_session`, run:
-
-   ```bash
-   sudo docker compose exec negotiation-web python manage.py migrate custom_accounts --fake
-   sudo docker compose exec negotiation-web python manage.py migrate
-   ```
-
-9. Open the Negotiation Tool:
-
-   `http://localhost:8001/negotiation/`
-
-   - For user registration, click `Get Started` -> `Register`
-   - For user login, click `Get Started` -> `Login`
-
-10. Open RepuLink:
-
-    `http://localhost:8003`
-
-    - The backend API docs are available at `http://localhost:8000/docs`.
-    - Database migrations and seed data run automatically at startup via the one-shot `repulink-prestart` container, so no manual migration commands are needed.
-    - Login and signup go through the shared Keycloak realm and the User Management service, so an account registered in RepuLink can also log into the Negotiation Tool, and vice versa.
-    - RepuLink stores its own data in PostgreSQL (exposed on host port `5433` for inspection); user credentials stay in Keycloak.
-
-11. If you get `Invalid HTTP_HOST header` while browsing:
-
-   - Update `Negotiation-Tool/privux/settings.py`:
-
-     ```python
-     ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]
-     ```
-
-   - Restart the web container:
-
-     ```bash
-     sudo docker restart negotiation-web-local
-     ```
-
-12. To inspect the resolved Docker Compose configuration:
-
-   ```bash
-   docker compose config
-   ```
-
-13. User guides are available in the `user_guide` folder. For the Negotiation Tool walkthrough, see [user_guide/Negotiation-Tool_user_guide.md](./user_guide/Negotiation-Tool_user_guide.md). For RepuLink, see the `USER_GUIDE.md` in the RepuLink repository.
-
-[//]: # (## Host Port Reference)
-
-[//]: # ()
-[//]: # (All host ports claimed by the local stack &#40;including the separate Keycloak compose and services that are currently commented out&#41;. When adding a new tool, pick ports that are not on this list and add them here.)
-
-[//]: # ()
-[//]: # (| Host port | Tool | Purpose |)
-
-[//]: # (|---|---|---|)
-
-[//]: # (| 2182 | Kafka infrastructure | Zookeeper |)
-
-[//]: # (| 3307 | Keycloak &#40;`keycloak/` compose&#41; | MySQL database |)
-
-[//]: # (| 4000 | Firebase emulator | Emulator Suite UI |)
-
-[//]: # (| 4400 | Firebase emulator | Emulator Hub |)
-
-[//]: # (| 4500 | Firebase emulator | Reserved port |)
-
-[//]: # (| 5173 | Consent Manager &#40;commented out&#41; | Frontend |)
-
-[//]: # (| 5433 | RepuLink | PostgreSQL database |)
-
-[//]: # (| 5678 | Negotiation Tool | debugpy &#40;API&#41; |)
-
-[//]: # (| 5679 | Negotiation Tool | debugpy &#40;Web&#41; |)
-
-[//]: # (| 8000 | RepuLink | Backend API |)
-
-[//]: # (| 8001 | Negotiation Tool | Web UI |)
-
-[//]: # (| 8002 | Negotiation Tool | Secure API |)
-
-[//]: # (| 8003 | RepuLink | Frontend |)
-
-[//]: # (| 8018 | Policy Editor | Web UI |)
-
-[//]: # (| 8019 | Consent Manager &#40;commented out&#41; | API |)
-
-[//]: # (| 8020 | Policy Editor | API |)
-
-[//]: # (| 8080 | Firebase emulator | Firestore emulator |)
-
-[//]: # (| 8081 | MongoDB | Mongo Express UI |)
-
-[//]: # (| 8800 | User Management | API |)
-
-[//]: # (| 8801 | User Management | Web UI |)
-
-[//]: # (| 8866 | Contract Service | API |)
-
-[//]: # (| 9090 | Keycloak &#40;`keycloak/` compose&#41; | Keycloak server |)
-
-[//]: # (| 9093 | Kafka infrastructure | Kafka broker |)
-
-[//]: # (| 9099 | Firebase emulator | Auth emulator |)
-
-[//]: # (| 9150 | Firebase emulator | Firestore UI WebSocket |)
-
-[//]: # (| 9199 | Firebase emulator | Storage emulator |)
-
-[//]: # (| 9229 | Consent Manager &#40;commented out&#41; | Node inspector |)
-
-[//]: # (| 27018 | MongoDB | MongoDB server |)
+Full RepuLink usage docs live in `RepuLink/USER_GUIDE.md` once cloned. General stack setup: [README.md](./README.md).
