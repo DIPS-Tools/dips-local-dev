@@ -89,7 +89,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8000"
-      - "5679:5679"  # debugpy port for Django Web
+      # - "5679:5679"  # debugpy port for Django Web
     volumes:
       - ./Negotiation-Tool:/app
       - /app/venv
@@ -119,7 +119,7 @@ services:
     restart: unless-stopped
     networks:
       - dips-local
-    command: python -m debugpy --listen 0.0.0.0:5679 manage.py runserver 0.0.0.0:8000
+    # command: python -m debugpy --listen 0.0.0.0:5679 manage.py runserver 0.0.0.0:8000 --nostatic
 
   # Negotiation Plugin - Secure API (FastAPI)
   negotiation-api:
@@ -128,7 +128,7 @@ services:
       dockerfile: Dockerfile.api
     ports:
       - "8002:8001"
-      - "5678:5678"  # debugpy port for Negotiation API
+      # - "5678:5678"  # debugpy port for Negotiation API
     volumes:
       - ./Negotiation-Tool:/app
     environment:
@@ -162,7 +162,7 @@ services:
     networks:
       - dips-local
     # command: python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m uvicorn negotiation_secure_api:app --host 0.0.0.0 --port 8001
-    command: python -m debugpy --listen 0.0.0.0:5678 -m uvicorn negotiation_secure_api:app --host 0.0.0.0 --port 8001
+    # command: python -m debugpy --listen 0.0.0.0:5678 -m uvicorn negotiation_secure_api:app --host 0.0.0.0 --port 8001
 
 
   # Contract Service - FastAPI for contract creation and management
