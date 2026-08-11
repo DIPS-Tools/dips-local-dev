@@ -120,6 +120,7 @@ services:
     networks:
       - dips-local
     # command: python -m debugpy --listen 0.0.0.0:5679 manage.py runserver 0.0.0.0:8000 --nostatic
+    command: python manage.py runserver 0.0.0.0:8000 --nostatic
 
   # Negotiation Plugin - Secure API (FastAPI)
   negotiation-api:
