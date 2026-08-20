@@ -158,6 +158,7 @@ Expected local directories include:
 
    ```dotenv
    HOST_ADDR=<YOUR_MACHINE_IP_ADDRESS>
+   ALLOWED_HOSTS=localhost,127.0.0.1,<YOUR_MACHINE_IP_ADDRESS>
    KEYCLOAK_HOST_ADDR=<YOUR_KEYCLOAK_SERVER_IP_ADDRESS>
    ```
 
@@ -177,10 +178,10 @@ Expected local directories include:
 
 6. Configure Django to Allow Access from Your Machine IP (Required)
 
-   Update `Negotiation-Tool/privux/settings.py` to include your machine's IP address in `ALLOWED_HOSTS`. This configuration is **required** to allow Django to accept requests sent to your machine's IP address.
+   Set `ALLOWED_HOSTS` in the root `.env` file. Use a comma-separated list containing `localhost`, `127.0.0.1`, and every hostname or IP address used to access the Negotiation Tool. Docker Compose passes this value to Django, so no source-code changes are required.
 
-   ```python
-   ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]
+   ```dotenv
+   ALLOWED_HOSTS=localhost,127.0.0.1,<YOUR_MACHINE_IP_ADDRESS>
    ```
 
 
@@ -225,16 +226,16 @@ Expected local directories include:
 
 11. If you get `Invalid HTTP_HOST header` while browsing:
 
-   - Update `Negotiation-Tool/privux/settings.py`:
+   - Update `ALLOWED_HOSTS` in the root `.env` file:
 
-     ```python
-     ALLOWED_HOSTS = ["localhost", "127.0.0.1", "YOUR_MACHINE_IP_ADDR"]
+     ```dotenv
+     ALLOWED_HOSTS=localhost,127.0.0.1,<YOUR_MACHINE_IP_ADDRESS>
      ```
 
-   - Restart the web container:
+   - Recreate the web container so it receives the updated environment variable:
 
      ```bash
-     sudo docker restart negotiation-web-local
+     sudo docker compose up -d --force-recreate negotiation-web
      ```
 
 12. To inspect the resolved Docker Compose configuration:
